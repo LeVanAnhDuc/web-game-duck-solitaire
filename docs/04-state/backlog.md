@@ -7,22 +7,26 @@
 
 ## Đang làm
 
-Không có việc nào đang dở. Feature `klondike` đã xong trên nhánh `feat/klondike`:
-FR-01 → FR-13 đều `xong`, 208 test Vitest và 85 test Playwright (4 bề rộng) xanh,
-`yarn typecheck` / `yarn lint` / `yarn build` xanh, first-load JS đo được 110KB.
+Không có việc nào đang dở. `v1.0.0` đã phát hành và đang chạy tại
+https://levananhduc.github.io/web-game-solitaire/
 
-CI/CD đã dựng theo khuôn của `web-game-minesweeper` (ADR-0007): `ci.yml`, `deploy.yml`,
-`release.yml`, cùng bốn script chạy được ở máy. Chưa workflow nào chạy lần nào — chúng
-chỉ khởi động ở lần push đầu tiên lên `main`.
+Trạng thái đo được ngày 2026-09-07:
+
+- FR-01 → FR-13 đều `xong`; 208 test Vitest, 85 test Playwright ở 320/375/768/1440.
+- `ci.yml` xanh cả ba job trên PR #1; `deploy.yml` và `release.yml` xanh trên `main`.
+- First-load JS 110KB (trần NFR-PERF-05 là 150KB).
+- Kiểm bản deploy thật bằng trình duyệt: chia đủ 7 cột 1..7, rút bài được, không cuộn
+  ngang ở 375, console và network sạch.
+- Dependabot alert + automated security fixes đã bật; 0 alert đang mở.
 
 ## Việc tiếp theo
 
 | Việc | Liên quan | Ưu tiên | Vì sao ưu tiên đó |
 | --- | --- | --- | --- |
-| Merge `feat/klondike` vào `main` | — | cao | Push đầu tiên lên `main` sẽ chạy CI, deploy lên Pages, và phát hành `v1.0.0`. Pages đã bật sẵn (source = GitHub Actions), nên không còn bước tay nào |
-| E2E chơi hết một ván **bằng kéo thả** | FR-04 | trung bình | Hiện kéo thả chỉ được kiểm ở mức một nước; hai lối vào phải cho cùng kết quả, và đó đúng là thứ dễ trôi ra khỏi nhau |
-| Đo NFR-PERF-02 trên máy thật, có throttle CPU | NFR-PERF-02 | trung bình | Ngưỡng 100ms mỗi nước chưa từng được đo; mọi thứ khác trong `nfr.md` đã có số |
-| Xem lại `--overlap-up` ở 320px | FR-11 | thấp | Ở 320px lá bài rộng ~41px, dải nhìn thấy của lá bị che còn 18px — chơi được nhưng chật |
+| E2E chơi hết một ván **bằng kéo thả** | FR-04 | trung bình | Hiện kéo thả chỉ được kiểm ở mức một nước. Hai lối vào phải cho cùng kết quả, và đó đúng là thứ dễ trôi ra khỏi nhau |
+| Đo NFR-PERF-02 trên máy thật, có throttle CPU 4× | NFR-PERF-02 | trung bình | Ngưỡng 100ms mỗi nước là ngưỡng duy nhất trong `nfr.md` chưa có số đo |
+| Xem lại `--overlap-up` ở 320px | FR-11 | thấp | Lá bài rộng ~41px, dải nhìn thấy của lá bị che còn 18px — chơi được nhưng chật |
+| Cân nhắc `.github/dependabot.yml` cho cập nhật dependency định kỳ | NFR-SEC-05 | thấp | Alert hiện chỉ báo lỗ hổng; cập nhật thường kỳ là chuyện khác. Đổi lại là PR nhiễu hằng tuần cho một dự án bốn dependency |
 
 ## Nợ kỹ thuật — cố ý làm tạm
 
