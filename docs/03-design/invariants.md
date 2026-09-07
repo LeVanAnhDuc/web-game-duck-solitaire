@@ -21,3 +21,6 @@ thật của một engine bài. -->
 | 8 | Mọi lá bài mang **`id` ổn định suốt ván** và `id` là `key` của React | React tái dùng nhầm DOM node giữa các lá; hiệu ứng chuyển động gán sai lá, thỉnh thoảng lá hiện sai mặt trong một khung hình |
 | 9 | Chuỗi tự hoàn tất phải **huỷ được**, và mọi thao tác của người chơi huỷ nó ngay | Nước tự động và nước tay chen nhau vào cùng `history`, cho ra thế bài không ai dựng lại được |
 | 10 | Không đọc/ghi `localStorage`, `cookie`, không `fetch` ra ngoài — xem NFR-DATA-01 | Dự án âm thầm có trạng thái tồn tại qua các phiên; bug "chỉ xảy ra trên máy tôi" bắt đầu từ đây |
+| 11 | 52 lá render theo **thứ tự bộ bài cố định**; lá nào nằm trên do `z-index`, không do thứ tự DOM | React remount node, transition mất giữa đường, và có khung hình lá hiện sai mặt |
+| 12 | `lib/layout.ts` thuần, không import React, **toạ độ là `calc()` chứ không phải số đo bằng JS** | Bố cục phụ thuộc thời điểm đo; đổi bề rộng cửa sổ là lệch, và test phải render mới chạy được |
+| 13 | Nâng `z` cho lá đang bay thì lá đó phải **thôi nhận thao tác** | Trong 180ms sau mỗi nước, lá vừa bay che cả vùng của các lá khác trong cột và ăn cú bấm nhắm vào chúng — người chơi nhanh tay sẽ cầm sai lá |

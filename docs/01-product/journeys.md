@@ -52,18 +52,20 @@
 **Bối cảnh:** Người chơi đã lật hết bài, phần còn lại chỉ là bê từng lá lên bốn chồng đích — đoạn nhàm chán nhất của Klondike.
 
 **Các bước:**
-1. Người chơi chạm đúp một lá bất kỳ; lá tự bay lên chỗ hợp lệ nếu có.
-2. Khi cả bàn không còn lá úp và chồng rút đã cạn, nút **Hoàn tất** hiện lên.
-3. Chạm **Hoàn tất**; các lá lần lượt bay lên foundation cho đến khi hết bài.
+1. Người chơi **chạm một lần** vào một lá; nếu chồng đích nhận được lá đó thì nó bay lên.
+2. Lá không đi lên được thì cú chạm chỉ chọn nó. **Chạm đúp** thì hệ thống tìm rộng hơn — foundation trước, rồi các cột.
+3. Khi cả bàn không còn lá úp, nút **Hoàn tất** bật lên.
+4. Chạm **Hoàn tất**; các lá lần lượt bay lên foundation cho đến khi hết bài.
 
 **Kết quả mong đợi:** Ván kết thúc thắng, màn mừng hiện ra.
 
 **Điều gì có thể sai:**
 - Chạm đúp một lá không có chỗ đi hợp lệ → không xảy ra gì, và cũng không được ghi một nước rỗng vào lịch sử (nếu ghi thì undo sẽ có nước "không làm gì").
+- Một chạm đưa lá đi rồi, cú chạm thứ hai của một cú chạm-đúp rơi xuống lá nằm dưới → phải bị bỏ qua, không được biến thành một lần chọn để rồi thành một nước đi ngoài ý muốn.
 - Bấm **Hoàn tất** rồi bấm Undo giữa chừng → phải dừng chuỗi tự động lại, không đánh nhau với thao tác của người chơi.
 - Nút **Hoàn tất** hiện khi vẫn còn lá úp → sai điều kiện, chuỗi tự động sẽ kẹt giữa chừng.
 
-**Chức năng liên quan:** FR-05 · FR-06
+**Chức năng liên quan:** FR-05 · FR-06 · FR-14
 
 ---
 

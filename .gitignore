@@ -17,3 +17,6 @@ yarn-error.log
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# git worktrees live here (feature-flow section 3); they are checkouts, not content
+/.worktrees/
