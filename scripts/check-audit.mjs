@@ -1,83 +1,104 @@
+import { execFileSync } from "node:child_process";
+
 /**
- * Enforces NFR-SEC-05 - "no vulnerability at high or above" - exactly as written.
+ * Enforces NFR-SEC-05 - "no dependency vulnerability at high or above".
  *
- * `yarn audit` cannot do this on its own: yarn 1 returns a bitmask covering EVERY
- * severity it found, so a moderate advisory fails the build too. Gating on that
- * would be stricter than the threshold says, and a gate nobody agreed to is a gate
- * people start bypassing.
+ * It asks GitHub for this repository's Dependabot alerts rather than running
+ * `yarn audit`. Yarn 1's audit endpoint
+ * (registry.yarnpkg.com/-/npm/v1/security/audits) times out on every call now, both
+ * on a laptop and on a GitHub runner - and the version of this script ported from
+ * web-game-minesweeper printed "no high or critical advisory (0 total)" and exited 0
+ * when that happened. Its audit step has never actually run. A security gate that
+ * goes green when it never ran is worse than no gate at all, so this one asks a
+ * source that answers, and fails loudly when it cannot.
  *
- *   yarn audit --json | node scripts/check-audit.mjs
+ * GitHub builds the alert list from the committed yarn.lock, so what is checked is
+ * what is installed - closer to the truth than an npm-side resolution of
+ * package.json would be.
+ *
+ *   yarn check:audit
+ *
+ * Locally it uses your `gh` login. In CI it uses GITHUB_TOKEN, which needs
+ * `security-events: read` on the job.
+ *
+ * The blind spot, covered separately: an alert only exists after GitHub has scanned
+ * a pushed lockfile, so a brand-new vulnerable dependency on a feature branch is not
+ * here yet. That window is what dependency-review-action guards on pull requests.
  */
 const BLOCKING = new Set(["high", "critical"]);
 
-let raw = "";
-process.stdin.setEncoding("utf8");
-for await (const chunk of process.stdin) raw += chunk;
+const repo =
+  process.env.GITHUB_REPOSITORY ??
+  (() => {
+    try {
+      return execFileSync("gh", ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"], {
+        encoding: "utf8",
+      }).trim();
+    } catch {
+      return "";
+    }
+  })();
 
-const advisories = new Map();
-const failures = [];
-let sawSummary = false;
-
-for (const line of raw.split("\n")) {
-  if (!line.trim()) continue;
-  let entry;
-  try {
-    entry = JSON.parse(line);
-  } catch {
-    continue; // yarn interleaves non-JSON lines
-  }
-  // The registry can time out, and yarn reports that as a JSON line on stdout while
-  // the pipe still closes cleanly. Without this branch the script would go on to
-  // print "no high or critical advisory (0 total)" and exit 0 - a security gate that
-  // turns green when the audit never ran is worse than no gate at all.
-  if (entry.type === "error") {
-    failures.push(String(entry.data));
-    continue;
-  }
-  if (entry.type === "auditSummary") sawSummary = true;
-  if (entry.type !== "auditAdvisory") continue;
-  const a = entry.data.advisory;
-  advisories.set(a.id, {
-    severity: a.severity,
-    module: a.module_name,
-    vulnerable: a.vulnerable_versions,
-    patched: a.patched_versions,
-    title: a.title,
-    path: entry.data.resolution?.path ?? "",
-  });
-}
-
-if (failures.length > 0 || !sawSummary) {
-  console.error("NFR-SEC-05 could not be checked: yarn audit did not complete.");
-  console.error("");
-  for (const message of failures) console.error(`  ${message}`);
-  if (failures.length === 0) console.error("  no auditSummary in the output");
-  console.error("");
-  console.error("Re-run it; do not treat this as a pass.");
+if (!repo) {
+  console.error("NFR-SEC-05 could not be checked: no repository to ask about.");
+  console.error("Set GITHUB_REPOSITORY, or run this inside a checkout with `gh` logged in.");
   process.exit(1);
 }
 
-const all = [...advisories.values()];
-const blocking = all.filter((a) => BLOCKING.has(a.severity));
-const rest = all.filter((a) => !BLOCKING.has(a.severity));
+let alerts;
+try {
+  const raw = execFileSync(
+    "gh",
+    ["api", "--paginate", `repos/${repo}/dependabot/alerts?state=open&per_page=100`],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+  );
+  // --paginate concatenates one JSON array per page; join them into one list.
+  alerts = raw
+    .split("\n")
+    .filter((line) => line.trim().startsWith("["))
+    .flatMap((line) => JSON.parse(line));
+} catch (error) {
+  console.error("NFR-SEC-05 could not be checked: the Dependabot alerts API did not answer.");
+  console.error("");
+  console.error(`  repo: ${repo}`);
+  console.error(`  ${String(error.stderr ?? error.message).trim()}`);
+  console.error("");
+  console.error("Dependabot alerts must be enabled on the repository, and the caller needs");
+  console.error("security-events read access. Do not treat this as a pass.");
+  process.exit(1);
+}
+
+const rows = alerts.map((a) => ({
+  severity: a.security_advisory?.severity ?? "unknown",
+  pkg: a.dependency?.package?.name ?? "?",
+  range: a.security_vulnerability?.vulnerable_version_range ?? "?",
+  fixed: a.security_vulnerability?.first_patched_version?.identifier ?? "no patch yet",
+  title: a.security_advisory?.summary ?? "",
+  url: a.html_url ?? "",
+}));
+
+const blocking = rows.filter((r) => BLOCKING.has(r.severity));
+const rest = rows.filter((r) => !BLOCKING.has(r.severity));
 
 if (rest.length > 0) {
-  console.log(`${rest.length} advisory(ies) below high, not blocking:`);
-  for (const a of rest) console.log(`  ${a.severity.padEnd(8)} ${a.module}  ${a.title}`);
+  console.log(`${rest.length} open alert(s) below high, not blocking:`);
+  for (const r of rest) console.log(`  ${r.severity.padEnd(8)} ${r.pkg}  ${r.title}`);
   console.log("");
 }
 
 if (blocking.length === 0) {
-  console.log(`NFR-SEC-05: no high or critical advisory (${all.length} total).`);
+  console.log(`NFR-SEC-05: no open alert at high or above (${rows.length} open in total).`);
   process.exit(0);
 }
 
-console.error(`NFR-SEC-05 violated: ${blocking.length} advisory(ies) at high or above\n`);
-for (const a of blocking) {
-  console.error(`  ${a.severity.toUpperCase()}  ${a.module} ${a.vulnerable}`);
-  console.error(`    ${a.title}`);
-  console.error(`    via ${a.path}`);
-  console.error(`    fixed in ${a.patched}\n`);
+console.error(`NFR-SEC-05 violated: ${blocking.length} open alert(s) at high or above`);
+console.error("");
+for (const r of blocking) {
+  console.error(`  ${r.severity.toUpperCase()}  ${r.pkg} ${r.range}`);
+  console.error(`    ${r.title}`);
+  console.error(`    fixed in ${r.fixed}`);
+  if (r.url) console.error(`    ${r.url}`);
+  console.error("");
 }
-console.error("Fix it, or add a resolutions entry in package.json pinning the patched range.");
+console.error("Upgrade it, or pin the patched range with a resolutions entry in package.json.");
 process.exit(1);

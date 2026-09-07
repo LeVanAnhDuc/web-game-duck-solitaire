@@ -13,6 +13,8 @@ concurrency:
 
 permissions:
   contents: read
+  # check:audit reads this repository's Dependabot alerts - see scripts/check-audit.mjs
+  security-events: read
 
 jobs:
   # Split in two on purpose: these run in parallel, and a lint failure and a broken
@@ -42,11 +44,13 @@ jobs:
       - name: Unit and component tests
         run: yarn test
 
-      # NFR-SEC-05. `yarn audit` alone cannot express "high or above": yarn 1
-      # returns a bitmask covering every severity, so a moderate would fail the
-      # build too. The script gates on exactly what the threshold says.
+      # NFR-SEC-05, read from this repository's Dependabot alerts. `yarn audit` is
+      # not used: yarn 1's audit endpoint times out on every call now, and the
+      # ported script it came with reported a pass when that happened.
       - name: Dependency audit
         run: yarn check:audit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   e2e:
     name: Build and end-to-end
@@ -84,3 +88,17 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Alerts only exist once GitHub has scanned a pushed lockfile, so they cannot catch
+  # a vulnerable dependency being introduced by this very branch. This closes that
+  # window - it reviews the dependency diff of the pull request itself, and it only
+  # has a diff to review on a pull request.
+  dependencies:
+    name: New dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

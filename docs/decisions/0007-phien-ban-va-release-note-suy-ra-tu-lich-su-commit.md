@@ -41,6 +41,6 @@ Kèm theo, hai ngưỡng trong `nfr.md` chuyển từ "review bằng mắt" sang
 **Mất / phải chấp nhận:**
 - Chất lượng ghi chú phụ thuộc hoàn toàn vào chất lượng subject của commit. Đây vừa là giá phải trả vừa là áp lực đúng hướng.
 - Ba workflow chạy song song trên mỗi lần push `main`, và cả `deploy` lẫn `release` đều chạy lại test thay vì tin vào `ci`. Tốn thêm vài phút máy; đổi lại không có workflow nào giả định một kết quả xanh mà nó không tự nhìn thấy.
-- `scripts/check-audit.mjs` được sửa so với bản gốc của minesweeper: bản gốc in "no high or critical advisory (0 total)" và **thoát 0 khi `yarn audit` không chạy được** (hết thời gian chờ registry chẳng hạn). Bản ở đây đỏ trong trường hợp đó. Một cổng an ninh xanh lúc nó chưa hề chạy còn tệ hơn là không có cổng.
+- Cổng NFR-SEC-05 ban đầu dựng trên `yarn audit`, và lần chạy CI đầu tiên cho thấy endpoint đó đã chết. Nguồn dữ liệu được đổi ngay sau đó — xem [`ADR-0008`](0008-doc-dependabot-alert-thay-cho-yarn-audit.md). Phần còn lại của quyết định này (ba workflow, script chạy được ở máy, ghi chú dựng từ commit) không đổi.
 
 **Điều kiện xem lại quyết định này:** nếu dự án chuyển hẳn sang làm việc qua pull request có nhãn, vì lúc đó `--generate-notes` mới thật sự có dữ liệu.
