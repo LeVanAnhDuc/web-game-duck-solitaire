@@ -96,9 +96,14 @@ yarn release:notes v1.1.0    # what its notes would say
 | any `feat:` commit | minor |
 | anything else | patch |
 
-The head commit's **subject** can override it: `[release major]`, `[release minor]`,
-or `[skip release]` to publish nothing. Only the subject counts — a body that merely
-mentions the marker (this README, for one) must not trigger a release.
+A commit **subject** can override it: `[release major]`, `[release minor]`, or
+`[skip release]` to publish nothing. The markers are read from the subjects of the
+commits being landed — when a pull request is merged, GitHub writes its own subject
+("Merge pull request #2 from …"), so the merge commit is looked through to the commits
+it brought in. The newest marker wins.
+
+Only subjects count. A body that merely mentions a marker — this README, for one —
+must never publish a version.
 
 **How the notes are composed:** commit subjects since the previous tag, grouped by
 their Conventional Commit prefix — breaking changes first, then What's new (`feat`),
