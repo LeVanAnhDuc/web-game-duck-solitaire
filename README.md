@@ -41,7 +41,7 @@ There is nothing to configure — the game reads no required environment variabl
 | `yarn test` | Vitest — rules and components |
 | `yarn test:e2e` | Playwright against the built static export, at four viewports |
 | `yarn check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
-| `yarn check:audit` | Open Dependabot alerts at high or above (NFR-SEC-05); needs `gh` logged in |
+| `yarn check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
 | `yarn release:next` | Which tag the next release would get, and why |
 | `yarn release:notes v1.1.0` | What that release's notes would say |
 | `yarn format` | Prettier |
@@ -69,7 +69,7 @@ place a position changes.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Parallel jobs: lint + typecheck + unit tests + dependency alerts, and build + first-load-JS budget + the end-to-end suite at four viewports. Pull requests get a third that reviews the dependency diff |
+| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Two parallel jobs: lint + typecheck + unit tests, and build + first-load-JS budget + the end-to-end suite at four viewports. Pull requests get a third that fails on a newly introduced dependency with a high-or-above advisory (NFR-SEC-05) |
 | [`deploy.yml`](.github/workflows/deploy.yml) | push to `main` | Rebuilds with `GITHUB_PAGES=true` and publishes `out/` to GitHub Pages. It re-runs the tests rather than trusting a green run it cannot see |
 | [`release.yml`](.github/workflows/release.yml) | push to `main` | Gates on the tests, works out the next version, composes the notes, and publishes a GitHub release |
 

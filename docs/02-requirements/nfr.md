@@ -29,7 +29,7 @@ dạng ~~(bỏ)~~ kèm lý do, vì ID không được tái dùng. -->
 | ~~NFR-SEC-02~~ | ~~(bỏ)~~ không có log, không có PII | — |
 | ~~NFR-SEC-03~~ | ~~(bỏ)~~ không có đăng nhập | — |
 | NFR-SEC-04 | Không có secret nào trong repo. Dự án này lẽ ra không cần biến môi trường nào — một biến mới xuất hiện là dấu hiệu phải xem lại kiến trúc | grep + review `.env.example` |
-| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `yarn check:audit` đọc Dependabot alert của repo (chặn trong CI, chạy được ở máy); `dependency-review-action` chặn thêm ở PR cho dependency mới. **Không dùng `yarn audit`** — endpoint của yarn 1 hết thời gian chờ ở mọi lần gọi, xem ADR-0007 |
+| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `dependency-review-action` chặn ở mỗi PR (cổng thật); Dependabot alert + PR sửa tự động lo lỗ hổng mới trên dependency cũ; `yarn check:audit` xem danh sách alert ở máy. **Không dùng `yarn audit`** — endpoint yarn 1 đã chết. Xem ADR-0008 |
 | ~~NFR-SEC-06~~ | ~~(bỏ)~~ không có lỗi phía server để trả về | — |
 
 ## Accessibility

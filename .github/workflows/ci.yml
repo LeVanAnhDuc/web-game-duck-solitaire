@@ -13,8 +13,6 @@ concurrency:
 
 permissions:
   contents: read
-  # check:audit reads this repository's Dependabot alerts - see scripts/check-audit.mjs
-  security-events: read
 
 jobs:
   # Split in two on purpose: these run in parallel, and a lint failure and a broken
@@ -43,14 +41,6 @@ jobs:
       # reading the source to prove src/game never reaches for the browser.
       - name: Unit and component tests
         run: yarn test
-
-      # NFR-SEC-05, read from this repository's Dependabot alerts. `yarn audit` is
-      # not used: yarn 1's audit endpoint times out on every call now, and the
-      # ported script it came with reported a pass when that happened.
-      - name: Dependency audit
-        run: yarn check:audit
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   e2e:
     name: Build and end-to-end
@@ -89,10 +79,15 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  # Alerts only exist once GitHub has scanned a pushed lockfile, so they cannot catch
-  # a vulnerable dependency being introduced by this very branch. This closes that
-  # window - it reviews the dependency diff of the pull request itself, and it only
-  # has a diff to review on a pull request.
+  # NFR-SEC-05 in CI. It is here rather than as a `yarn audit` step because yarn 1's
+  # audit endpoint no longer answers, and GITHUB_TOKEN cannot read Dependabot alerts
+  # (403 "Resource not accessible by integration") - so neither of the two obvious
+  # in-job checks works without a personal access token. See ADR-0008.
+  #
+  # This reviews the dependency diff of the pull request, which is where a vulnerable
+  # dependency actually enters the project. A vulnerability newly disclosed against a
+  # dependency already here arrives instead as a Dependabot alert and its automated
+  # fix PR - which then comes back through this same job.
   dependencies:
     name: New dependencies
     if: github.event_name == 'pull_request'
