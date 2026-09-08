@@ -21,6 +21,8 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "on-first-retry",
   },
+  // Motion is switched off per test in e2e/fixtures.ts, not here: `use.reducedMotion`
+  // is not applied in this version, and that file says why.
   projects: [
     { name: "mobile-320", use: { ...devices["Desktop Chrome"], viewport: { width: 320, height: 720 } } },
     { name: "mobile-375", use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 720 } } },

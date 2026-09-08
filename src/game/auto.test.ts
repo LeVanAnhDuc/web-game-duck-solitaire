@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoCompleteMoves, findAutoTarget } from "./auto";
+import { autoCompleteMoves, findAutoTarget, findFoundationTarget } from "./auto";
 import { SUITS, cardId, type Card, type Rank, type Suit } from "./cards";
 import { deal } from "./deal";
 import { applyMove, isLegal, legalMoves, type Move } from "./moves";
@@ -276,6 +276,62 @@ describe("autoCompleteMoves", () => {
     for (let seed = 0; seed < 25; seed++) {
       const moves: Move[] = autoCompleteMoves(deal(seed, 3));
       expect(moves.length).toBeLessThan(500);
+    }
+  });
+});
+
+describe("findFoundationTarget", () => {
+  it("sends a card up when a foundation of its suit accepts it", () => {
+    const s = withColumns({ 0: { down: [], up: [card("spades", 1)] } });
+    expect(targetOf(findFoundationTarget(s, T(0)))).toEqual({ kind: "foundation", index: 0 });
+  });
+
+  it("never proposes a tableau column, even when one would take the card", () => {
+    // The black four fits the red five in column 1, and no foundation can take it.
+    const s = withColumns({
+      0: { down: [], up: [card("spades", 4)] },
+      1: { down: [], up: [card("hearts", 5)] },
+    });
+    expect(findAutoTarget(s, T(0))).not.toBeNull();
+    expect(findFoundationTarget(s, T(0))).toBeNull();
+  });
+
+  it("works from the waste, which is where one tap is used most", () => {
+    const s = blank({ waste: [card("diamonds", 1)] });
+    expect(targetOf(findFoundationTarget(s, WASTE))).toEqual({ kind: "foundation", index: 2 });
+  });
+
+  it("returns null when nothing at all accepts the card", () => {
+    const s = withColumns({ 0: { down: [], up: [card("spades", 7)] } });
+    expect(findFoundationTarget(s, T(0))).toBeNull();
+  });
+
+  it("agrees with findAutoTarget whenever findAutoTarget picks a foundation", () => {
+    // Same board, 200 seeds, every playable source: the two must not disagree about
+    // the foundation half, or one tap and two taps would move a card to two places.
+    for (let seed = 1; seed <= 200; seed++) {
+      const state = deal(seed, 1);
+      const sources: PileId[] = [WASTE, ...[0, 1, 2, 3, 4, 5, 6].map((i) => T(i as 0))];
+      for (const from of sources) {
+        const auto = findAutoTarget(state, from);
+        const onlyFoundation = findFoundationTarget(state, from);
+        const autoTo = targetOf(auto);
+        if (autoTo && autoTo.kind === "foundation") {
+          expect(onlyFoundation).toEqual(auto);
+        } else {
+          expect(onlyFoundation).toBeNull();
+        }
+      }
+    }
+  });
+
+  it("only ever proposes a legal move", () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const state = deal(seed, 3);
+      for (const i of [0, 1, 2, 3, 4, 5, 6] as const) {
+        const move = findFoundationTarget(state, T(i));
+        if (move) expect(isLegal(state, move)).toBe(true);
+      }
     }
   });
 });

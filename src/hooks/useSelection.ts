@@ -17,6 +17,16 @@ import type { MoveIntent } from "./moveIntent";
 /** Below this many pixels of travel, a press is a tap, not a drag. */
 const DRAG_THRESHOLD_PX = 6;
 
+/**
+ * How long a tap is ignored after one tap already moved a card (FR-14).
+ *
+ * A successful one-tap move takes the card out from under the finger, so the second
+ * tap of a double tap lands on whatever was underneath and picks it up. Picking a card
+ * up is harmless on its own, but it leaves the player one tap away from a move nobody
+ * asked for. This is the only timer in the interaction layer.
+ */
+const TAP_SUPPRESS_MS = 300;
+
 export type DragSource = { from: PileId; count: number; cardId: CardId };
 
 export type SelectionState =
@@ -36,16 +46,23 @@ export type UseSelection = {
   selectSource: (source: DragSource) => void;
   dropOn: (to: PileId) => void;
   clear: () => void;
+  /** Call after a one-tap move: ignores taps for TAP_SUPPRESS_MS. */
+  suppressNextTap: () => void;
 };
 
 /**
  * Finds the pile under a screen point. The drag preview sets pointer-events: none, so
- * it never hit-tests itself; anything else under the cursor is either a pile or the
- * table.
+ * it never hit-tests itself.
+ *
+ * Two attributes, not one: cards live in BoardLayer and a pile's slot is no longer
+ * their ancestor, so landing on a card cannot be resolved by walking up to a slot.
+ * A card therefore carries the pile it is in as `data-card-pile`, and either answer
+ * names the same pile.
  */
 function pileKeyAt(x: number, y: number): string | null {
   const el = document.elementFromPoint(x, y);
-  return el?.closest<HTMLElement>("[data-pile]")?.dataset.pile ?? null;
+  const hit = el?.closest<HTMLElement>("[data-pile], [data-card-pile]");
+  return hit?.dataset.pile ?? hit?.dataset.cardPile ?? null;
 }
 
 export function useSelection(
@@ -65,6 +82,16 @@ export function useSelection(
   } | null>(null);
   /** A pointerup that ended a drag is still followed by a click; swallow that one. */
   const swallowNextTap = useRef(false);
+  /** Set by suppressNextTap; taps before this moment are dropped on the floor. */
+  const suppressUntil = useRef(0);
+
+  const tapIsSuppressed = useCallback(() => {
+    if (swallowNextTap.current) {
+      swallowNextTap.current = false;
+      return true;
+    }
+    return Date.now() < suppressUntil.current;
+  }, []);
 
   const clear = useCallback(() => setSelection({ kind: "idle" }), []);
 
@@ -89,10 +116,7 @@ export function useSelection(
 
   const onCardTap = useCallback(
     (source: DragSource) => {
-      if (swallowNextTap.current) {
-        swallowNextTap.current = false;
-        return;
-      }
+      if (tapIsSuppressed()) return;
       setSelection((current) => {
         if (current.kind === "idle") return { kind: "selected", ...source };
         if (current.cardId === source.cardId) return { kind: "idle" };
@@ -101,18 +125,15 @@ export function useSelection(
         return { kind: "idle" };
       });
     },
-    [onIntent],
+    [onIntent, tapIsSuppressed],
   );
 
   const onPileTap = useCallback(
     (to: PileId) => {
-      if (swallowNextTap.current) {
-        swallowNextTap.current = false;
-        return;
-      }
+      if (tapIsSuppressed()) return;
       dropOn(to);
     },
-    [dropOn],
+    [dropOn, tapIsSuppressed],
   );
 
   const onCardPointerDown = useCallback((source: DragSource, e: React.PointerEvent) => {
@@ -204,6 +225,9 @@ export function useSelection(
     selectSource,
     dropOn,
     clear,
+    suppressNextTap: useCallback(() => {
+      suppressUntil.current = Date.now() + TAP_SUPPRESS_MS;
+    }, []),
   };
 }
 

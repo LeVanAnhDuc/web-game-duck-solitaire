@@ -32,10 +32,15 @@
   --font-ui: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-num: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
 
-  /* Geometry - mobile first, 320..767 */
-  --card-w: calc((100vw - 32px) / 7);
+  /* Geometry - mobile first, 320..767.
+     The width is derived, not guessed: seven cards, six gaps and the board padding on
+     both sides have to add up to the viewport exactly. The old constant 32px was 8px
+     short of the real 2*8 + 6*4, so the board was wider than its space and the felt
+     quietly clipped 4px off each edge. */
+  --card-w: calc((100vw - 2 * var(--pad-board) - 6 * var(--gap-x)) / 7);
   --card-h: calc(var(--card-w) * 1.4);
   --gap-x: 4px;
+  --gap-y: 16px;
   --overlap-down: 8px;
   --overlap-up: 18px;
   --pad-board: 8px;
@@ -45,6 +50,8 @@
   --dur-move: 180ms;
   --dur-flip: 220ms;
   --ease-move: cubic-bezier(0.2, 0, 0, 1);
+  --stagger-run: 20ms;
+  --stagger-deal: 25ms;
 }
 
 @media (min-width: 768px) {
@@ -52,6 +59,7 @@
     --card-w: 72px;
     --card-h: 101px;
     --gap-x: 8px;
+    --gap-y: 24px;
     --overlap-down: 12px;
     --overlap-up: 26px;
     --pad-board: 16px;
@@ -64,6 +72,7 @@
     --card-w: 96px;
     --card-h: 134px;
     --gap-x: 12px;
+    --gap-y: 32px;
     --overlap-down: 14px;
     --overlap-up: 32px;
     --pad-board: 24px;
@@ -76,13 +85,20 @@
   :root {
     --dur-move: 0ms;
     --dur-flip: 0ms;
+    --stagger-run: 0ms;
+    --stagger-deal: 0ms;
   }
+  /* Nothing animates, rather than everything animating very fast.
+     The usual `transition-duration: 0.01ms` trick still starts a transition, and a
+     transition that has started has a value that is being interpolated - so a card
+     that just moved reports the position it is travelling FROM until the browser
+     produces a frame. That is wrong for a player who asked not to be animated, and it
+     is what made the board unmeasurable in a browser that is not painting. */
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property: none !important;
+    animation: none !important;
   }
 }
 
@@ -122,4 +138,55 @@ body {
 
 .reject-flash {
   animation: reject-flash 200ms ease-out 2;
+}
+
+/* A refused move has to be visible on the CARD, not only on the pile: the pile flash
+   says "not here", the card shake says "this one did not go anywhere". */
+@keyframes card-reject {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: -3px;
+  }
+  75% {
+    margin-left: 3px;
+  }
+}
+
+.card-reject {
+  animation: card-reject 200ms ease-out;
+}
+
+/* A card landed here. Short and quiet - it fires on most moves in the endgame. */
+@keyframes pile-accept {
+  0% {
+    box-shadow: 0 0 0 0 var(--ring-focus);
+  }
+  40% {
+    box-shadow: 0 0 0 4px var(--ring-focus);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.pile-accept {
+  animation: pile-accept 240ms ease-out;
+}
+
+/* The four foundations light up in turn before the win overlay covers the board. */
+@keyframes pile-celebrate {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 6px var(--ring-focus);
+  }
+}
+
+.pile-celebrate {
+  animation: pile-celebrate 240ms ease-out both;
 }

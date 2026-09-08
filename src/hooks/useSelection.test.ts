@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useSelection, type DragSource } from "./useSelection";
 import { pileKey, type PileId } from "@/game/state";
@@ -179,6 +179,42 @@ describe("useSelection - the drag branch", () => {
     });
     act(() => result.current.onCardTap(sourceOn(T0, "spades-13")));
     expect(result.current.selection.kind).toBe("idle");
+    expect(onIntent).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSelection - the guard after a one-tap move", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("ignores the tap that follows a one-tap move", () => {
+    // The moved card left the spot being tapped, so the second half of a double tap
+    // lands on the card underneath. Picking it up is harmless; being one tap away from
+    // moving it is not.
+    vi.useFakeTimers();
+    const { onIntent, result } = setup();
+    act(() => result.current.suppressNextTap());
+    act(() => result.current.onCardTap(sourceOn(T0, "spades-13")));
+    expect(result.current.selection.kind).toBe("idle");
+    expect(onIntent).not.toHaveBeenCalled();
+  });
+
+  it("stops ignoring them once the window has passed", () => {
+    vi.useFakeTimers();
+    const { result } = setup();
+    act(() => result.current.suppressNextTap());
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    act(() => result.current.onCardTap(sourceOn(T0, "spades-13")));
+    expect(result.current.selection.kind).toBe("selected");
+  });
+
+  it("also ignores a tap on a pile, not just on a card", () => {
+    vi.useFakeTimers();
+    const { onIntent, result } = setup();
+    act(() => result.current.selectSource(sourceOn(T0, "spades-13")));
+    act(() => result.current.suppressNextTap());
+    act(() => result.current.onPileTap(T1));
     expect(onIntent).not.toHaveBeenCalled();
   });
 });

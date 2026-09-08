@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Card } from "@/game/cards";
-import { autoCompleteMoves, findAutoTarget } from "@/game/auto";
+import type { Card, CardId } from "@/game/cards";
+import { autoCompleteMoves, findAutoTarget, findFoundationTarget } from "@/game/auto";
 import {
   FOUNDATION_SUITS,
   cardsOf,
@@ -14,11 +14,15 @@ import {
   type TableauIndex,
 } from "@/game/state";
 import { useGame } from "@/hooks/useGame";
+import { useBoardMotion } from "@/hooks/useBoardMotion";
 import { useSelection, type DragSource } from "@/hooks/useSelection";
 import type { MoveIntent } from "@/hooks/moveIntent";
+import { pileHeight, placements, type CardPlacement } from "@/lib/layout";
+import { WIN_CELEBRATION_MS, prefersReducedMotion } from "@/lib/motion";
 import { strings } from "@/lib/strings";
+import { BoardLayer } from "./BoardLayer";
 import { CardView } from "./CardView";
-import { PileView } from "./PileView";
+import { PileSlot } from "./PileSlot";
 import { Toolbar } from "./Toolbar";
 import { WinOverlay } from "./WinOverlay";
 
@@ -26,6 +30,9 @@ import { WinOverlay } from "./WinOverlay";
  * The board: the only place that knows how the piles are arranged, how the keyboard
  * walks between them, and how an auto-complete run is paced. It holds no rules - every
  * question about legality goes to useGame, which asks the engine.
+ *
+ * Two layers, not two rows of a grid: PileSlots mark the places and take the drops,
+ * BoardLayer draws all 52 cards. See docs/specs/board-motion/design.md.
  */
 
 const STOCK: PileId = { kind: "stock" };
@@ -44,7 +51,8 @@ const ROWS: PileId[][] = [[STOCK, WASTE, ...FOUNDATIONS], TABLEAU];
 
 const ALL_PILES = ROWS.flat();
 
-/** Long enough to see a card land, short enough not to feel like waiting. */
+/** Long enough to see a card land, short enough not to feel like waiting. Shorter than
+ *  the flight itself, so consecutive cards overlap into one stream. */
 const AUTO_STEP_MS = 110;
 const REJECT_FLASH_MS = 420;
 
@@ -61,7 +69,6 @@ function labelFor(pile: PileId): string {
   }
 }
 
-/** How many face-down cards a pile shows: only tableau columns hide anything. */
 function faceDownCountOf(state: GameState, pile: PileId): number {
   if (pile.kind === "tableau") return state.tableau[pile.index]?.down.length ?? 0;
   return pile.kind === "stock" ? state.stock.length : 0;
@@ -69,16 +76,29 @@ function faceDownCountOf(state: GameState, pile: PileId): number {
 
 export function GameBoard() {
   const game = useGame();
-  const [rejected, setRejected] = useState<string | null>(null);
+  const [rejected, setRejected] = useState<{ pile: string; card: CardId | null }>({
+    pile: "",
+    card: null,
+  });
   const [autoRunning, setAutoRunning] = useState(false);
   const [pendingDrawMode, setPendingDrawMode] = useState<DrawMode | null>(null);
   const [keyboardActive, setKeyboardActive] = useState(false);
   const [focus, setFocus] = useState<{ row: number; col: number }>({ row: 1, col: 0 });
+  const [celebrating, setCelebrating] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const flashReject = useCallback((pile: PileId) => {
-    setRejected(pileKey(pile));
-    window.setTimeout(() => setRejected(null), REJECT_FLASH_MS);
+  const board = useMemo(() => placements(game.state), [game.state]);
+  const byId = useMemo(() => new Map(board.map((p) => [p.card.id, p])), [board]);
+  const motion = useBoardMotion(board, game.seed);
+
+  /**
+   * A refused move is announced twice on purpose: the pile flashes "not here", and the
+   * card that stayed put shakes. The pile alone leaves it ambiguous which card was
+   * being moved, which matters most in a long column.
+   */
+  const flashReject = useCallback((pile: PileId, card: CardId | null = null) => {
+    setRejected({ pile: pileKey(pile), card });
+    window.setTimeout(() => setRejected({ pile: "", card: null }), REJECT_FLASH_MS);
   }, []);
 
   const stopAuto = useCallback(() => setAutoRunning(false), []);
@@ -86,7 +106,11 @@ export function GameBoard() {
   const handleIntent = useCallback(
     (intent: MoveIntent) => {
       stopAuto();
-      if (game.play(intent) === "rejected") flashReject(intent.to);
+      if (game.play(intent) !== "rejected") return;
+      // The lifted card is the lowest of the run being moved; it is the one that did
+      // not go anywhere, so it is the one that shakes.
+      const cards = cardsOf(game.state, intent.from);
+      flashReject(intent.to, cards[cards.length - intent.count]?.id ?? null);
     },
     [game, flashReject, stopAuto],
   );
@@ -115,8 +139,21 @@ export function GameBoard() {
     return () => window.clearTimeout(id);
   }, [autoRunning, game]);
 
+  /**
+   * The four foundations light up in turn before the overlay covers the board - the
+   * board is what the player just finished, and it deserves the moment. Under reduced
+   * motion there is nothing to watch, so the overlay comes straight up.
+   */
   useEffect(() => {
-    if (game.won) setAutoRunning(false);
+    if (!game.won) {
+      setCelebrating(false);
+      return;
+    }
+    setAutoRunning(false);
+    if (prefersReducedMotion()) return;
+    setCelebrating(true);
+    const done = window.setTimeout(() => setCelebrating(false), WIN_CELEBRATION_MS);
+    return () => window.clearTimeout(done);
   }, [game.won]);
 
   /** Roving tabindex: only move focus once the player has actually used the keyboard,
@@ -148,15 +185,46 @@ export function GameBoard() {
     else tapStock();
   }, [selection, tapStock]);
 
+  /** Two taps, or Enter: put this card wherever it legally fits. */
   const autoMoveFrom = useCallback(
     (from: PileId, count: number) => {
       stopAuto();
       const move = findAutoTarget(game.state, from, count);
       if (move) game.playMove(move);
-      else flashReject(from);
+      else {
+        const cards = cardsOf(game.state, from);
+        flashReject(from, cards[cards.length - count]?.id ?? null);
+      }
       selection.clear();
     },
     [game, selection, stopAuto, flashReject],
+  );
+
+  /**
+   * One tap: put this card UP, or fall back to picking it up (FR-14).
+   *
+   * Deliberately narrower than two taps. One tap is the gesture a player makes
+   * hundreds of times without looking, so it may only make the move that is almost
+   * never wrong. Sending a card to a tableau column nobody chose is a decision, and a
+   * decision needs the second tap.
+   */
+  const tapCard = useCallback(
+    (source: DragSource) => {
+      const up = findFoundationTarget(game.state, source.from);
+      if (up && source.count === 1) {
+        stopAuto();
+        if (game.playMove(up) === "ok") {
+          selection.clear();
+          // The card just left the spot being tapped, so the second click of a double
+          // tap would land on whatever is underneath and pick it up - one more tap and
+          // that is a move nobody asked for.
+          selection.suppressNextTap();
+          return;
+        }
+      }
+      selection.onCardTap(source);
+    },
+    [game, selection, stopAuto],
   );
 
   /** The source a card represents: itself plus everything stacked on top of it. */
@@ -171,6 +239,12 @@ export function GameBoard() {
       return { from: pile, count, cardId: card.id };
     },
     [game.state],
+  );
+
+  const sourceOf = useCallback(
+    (placement: CardPlacement): DragSource | null =>
+      sourceAt(placement.pile, placement.indexInPile),
+    [sourceAt],
   );
 
   const onBoardKeyDown = useCallback(
@@ -223,6 +297,8 @@ export function GameBoard() {
           break;
         }
         case "Enter": {
+          // The keyboard deliberately has no one-tap/two-tap split: that distinction
+          // belongs to fingers, and Enter already means "find this card a home".
           if (held.kind !== "idle") autoMoveFrom(held.from, held.count);
           else {
             const cards = cardsOf(game.state, focusedPile);
@@ -259,35 +335,47 @@ export function GameBoard() {
     [game.state.foundations],
   );
 
-  const pileProps = (pile: PileId) => {
+  /** Everything the held card carries with it, for the lift. */
+  const heldCardIds = useMemo<ReadonlySet<CardId>>(() => {
+    const held = selection.selection;
+    if (held.kind === "idle") return new Set();
+    const cards = cardsOf(game.state, held.from);
+    return new Set(cards.slice(cards.length - held.count).map((c) => c.id));
+  }, [selection.selection, game.state]);
+
+  const slotProps = (pile: PileId) => {
     const cards = game.ready ? cardsOf(game.state, pile) : [];
     return {
       pileId: pile,
-      cards,
-      faceDownCount: faceDownCountOf(game.state, pile),
       label: labelFor(pile),
-      selectedCardId: selection.selectedCardId,
-      rejected: rejected === pileKey(pile),
-      fanCount: pile.kind === "waste" ? game.drawMode : 1,
+      height: pileHeight(game.state, pile),
+      cardIds: cards.map((c) => c.id),
+      rejected: rejected.pile === pileKey(pile),
+      accepted: motion.accepted.has(pileKey(pile)),
+      celebrating: celebrating && pile.kind === "foundation",
+      celebrationIndex: pile.kind === "foundation" ? pile.index : 0,
       tabIndex: pileKey(focusedPile) === pileKey(pile) ? 0 : -1,
-      onCardPointerDown: (_c: Card, index: number, e: React.PointerEvent<HTMLDivElement>) => {
-        const source = sourceAt(pile, index);
-        if (source) selection.onCardPointerDown(source, e);
+      // Focus is normally driven the other way - state moves it - but anything else can
+      // focus a slot too (a click, a screen reader, a test). Following real focus is
+      // what keeps "the pile the keyboard acts on" and "the pile that has focus" from
+      // being two different piles.
+      onFocus: (focused: PileId) => {
+        const row = ROWS.findIndex((r) => r.some((p) => pileKey(p) === pileKey(focused)));
+        if (row < 0) return;
+        const col = ROWS[row]!.findIndex((p) => pileKey(p) === pileKey(focused));
+        setFocus((current) =>
+          current.row === row && current.col === col ? current : { row, col },
+        );
       },
-      onCardClick: (_c: Card, index: number) => {
-        if (pile.kind === "stock") return tapOrDropOnStock();
-        const source = sourceAt(pile, index);
-        if (source) selection.onCardTap(source);
-        else selection.onPileTap(pile);
-      },
-      onCardDoubleClick: (_c: Card, index: number) => {
-        const source = sourceAt(pile, index);
-        if (source) autoMoveFrom(source.from, source.count);
-      },
-      onPileClick: () =>
-        pile.kind === "stock" ? tapOrDropOnStock() : selection.onPileTap(pile),
+      onClick: () => (pile.kind === "stock" ? tapOrDropOnStock() : selection.onPileTap(pile)),
     };
   };
+
+  const gridStyle = {
+    gridTemplateColumns: "repeat(7, var(--card-w))",
+    gap: "var(--gap-x)",
+    justifyContent: "center",
+  } as const;
 
   return (
     <main
@@ -308,37 +396,60 @@ export function GameBoard() {
 
       <div
         aria-label={strings.a11y.board}
-        className="flex flex-col gap-4"
+        className="relative"
         role="group"
         style={{ paddingInline: "var(--pad-board)" }}
       >
-        <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "repeat(7, var(--card-w))",
-            gap: "var(--gap-x)",
-            justifyContent: "center",
-          }}
-        >
-          <PileView {...pileProps(STOCK)} />
-          <PileView {...pileProps(WASTE)} />
-          <div aria-hidden="true" />
-          {FOUNDATIONS.map((pile) => (
-            <PileView key={pileKey(pile)} {...pileProps(pile)} />
-          ))}
+        <div className="flex flex-col" style={{ gap: "var(--gap-y)" }}>
+          <div className="grid" style={gridStyle}>
+            <PileSlot {...slotProps(STOCK)} />
+            <PileSlot {...slotProps(WASTE)} />
+            <div aria-hidden="true" />
+            {FOUNDATIONS.map((pile) => (
+              <PileSlot key={pileKey(pile)} {...slotProps(pile)} />
+            ))}
+          </div>
+
+          <div className="grid items-start" style={gridStyle}>
+            {TABLEAU.map((pile) => (
+              <PileSlot key={pileKey(pile)} {...slotProps(pile)} />
+            ))}
+          </div>
         </div>
 
+        {/* The cards sit above the slots, in a layer of their own, so a move is one
+            node changing coordinates instead of a remount between two subtrees. */}
         <div
-          className="grid items-start"
-          style={{
-            gridTemplateColumns: "repeat(7, var(--card-w))",
-            gap: "var(--gap-x)",
-            justifyContent: "center",
-          }}
+          className="absolute inset-0"
+          style={{ paddingInline: "var(--pad-board)", pointerEvents: "none" }}
         >
-          {TABLEAU.map((pile) => (
-            <PileView key={pileKey(pile)} {...pileProps(pile)} />
-          ))}
+          <div
+            className="relative mx-auto h-full"
+            style={{ width: "calc(7 * var(--card-w) + 6 * var(--gap-x))" }}
+          >
+            {game.ready && (
+              <BoardLayer
+                placements={board}
+                selected={heldCardIds}
+                rejectedCardId={rejected.card}
+                motion={motion}
+                onCardPointerDown={(placement, event) => {
+                  const source = sourceOf(placement);
+                  if (source) selection.onCardPointerDown(source, event);
+                }}
+                onCardClick={(placement) => {
+                  if (placement.pile.kind === "stock") return tapOrDropOnStock();
+                  const source = sourceOf(placement);
+                  if (source) tapCard(source);
+                  else selection.onPileTap(placement.pile);
+                }}
+                onCardDoubleClick={(placement) => {
+                  const source = sourceOf(placement);
+                  if (source) autoMoveFrom(source.from, source.count);
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -371,9 +482,9 @@ export function GameBoard() {
         />
       </div>
 
-      {/* The dragged card follows the pointer outside the pile it came from, so it
-          lives here rather than inside PileView. pointer-events: none keeps it from
-          hit-testing itself when the drop target is looked up. */}
+      {/* The dragged card follows the pointer outside the board, so it lives here
+          rather than in the layer. pointer-events: none keeps it from hit-testing
+          itself when the drop target is looked up. */}
       {selection.selection.kind === "dragging" && (
         <div
           aria-hidden="true"
@@ -383,7 +494,7 @@ export function GameBoard() {
             top: selection.selection.y - selection.selection.dy,
           }}
         >
-          <DraggedCard cardId={selection.selection.cardId} state={game.state} />
+          <DraggedCard cardId={selection.selection.cardId} byId={byId} />
         </div>
       )}
 
@@ -422,7 +533,7 @@ export function GameBoard() {
         </div>
       )}
 
-      {game.won && (
+      {game.won && !celebrating && (
         <WinOverlay
           cards={wonCards}
           moveCount={game.moveCount}
@@ -438,8 +549,14 @@ export function GameBoard() {
 
 /** The card under the cursor while dragging. Face up by definition - a face-down card
  *  is never a legal source, so sourceAt refuses to build one. */
-function DraggedCard({ cardId, state }: { cardId: string; state: GameState }) {
-  const card = ALL_PILES.flatMap((p) => cardsOf(state, p)).find((c) => c.id === cardId);
-  if (!card) return null;
-  return <CardView card={card} faceUp />;
+function DraggedCard({
+  cardId,
+  byId,
+}: {
+  cardId: string;
+  byId: Map<string, CardPlacement>;
+}) {
+  const placement = byId.get(cardId);
+  if (!placement) return null;
+  return <CardView card={placement.card} faceUp interactive={false} x="0px" y="0px" z={0} />;
 }

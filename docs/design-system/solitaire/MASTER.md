@@ -80,15 +80,20 @@ Thang bậc 4px: `4 · 8 · 12 · 16 · 24 · 32`. Không dùng giá trị ngoà
 
 | Vai trò | Biến | 320–767 | 768–1279 | ≥ 1280 |
 | --- | --- | --- | --- | --- |
-| Bề rộng lá | `--card-w` | `calc((100vw - 32px) / 7)` | `72px` | `96px` |
+| Bề rộng lá | `--card-w` | `calc((100vw - 2 * var(--pad-board) - 6 * var(--gap-x)) / 7)` | `72px` | `96px` |
 | Chiều cao lá | `--card-h` | `calc(var(--card-w) * 1.4)` | `101px` | `134px` |
 | Khe ngang giữa hai cột | `--gap-x` | `4px` | `8px` | `12px` |
+| Khe dọc giữa hàng trên và hàng tableau | `--gap-y` | `16px` | `24px` | `32px` |
 | Lấn dọc, lá úp | `--overlap-down` | `8px` | `12px` | `14px` |
 | Lấn dọc, lá ngửa | `--overlap-up` | `18px` | `26px` | `32px` |
 | Đệm quanh bàn | `--pad-board` | `8px` | `16px` | `24px` |
 | Bo góc lá | `--radius-card` | `4px` | `6px` | `8px` |
 
-Ở 320px, `--card-w` ra khoảng 41px — **nhỏ hơn ngưỡng 44px của NFR-A11Y-03**. Đó là
+Bề rộng lá ở khổ nhỏ là **suy ra, không phải đoán**: bảy lá cộng sáu khe cộng lề hai
+bên phải bằng đúng bề rộng khung nhìn. Hằng số `32px` dùng lúc đầu thiếu 8px so với
+`2 × 8 + 6 × 4` thật, nên bàn bài rộng hơn chỗ nó có và bị cắt 4px mỗi bên.
+
+Ở 320px, `--card-w` ra khoảng 40px — **nhỏ hơn ngưỡng 44px của NFR-A11Y-03**. Đó là
 lý do vùng chạm được tách khỏi phần vẽ: `CardView` bọc mặt bài trong một vùng bắt sự
 kiện tối thiểu 44×44px bằng padding trong suốt, chồng lấn sang lá bên cạnh. Phần
 nhìn thấy vẫn 41px, phần chạm được là 44px.
@@ -100,7 +105,24 @@ nhìn thấy vẫn 41px, phần chạm được là 44px.
 | Lá đổi chỗ | 180ms | `cubic-bezier(0.2, 0, 0, 1)` |
 | Lá lật | 220ms | `ease-in-out` |
 | Nháy từ chối | 200ms, 2 nhịp | `ease-out` |
+| Lá lắc khi bị từ chối | 200ms, ±3px | `ease-out` |
+| Foundation nảy khi nhận lá | 240ms | `ease-out` |
+| Foundation sáng lần lượt khi thắng | 240ms, lệch 120ms mỗi chồng | `ease-out` |
 | Bài đổ khi thắng | tới khi hết bài | vật lý nảy trên canvas |
 
-Dưới `prefers-reduced-motion: reduce`, **mọi thời lượng về 0** và màn thắng chỉ hiện
-bài đã xếp cùng dòng chúc mừng, không có canvas chuyển động (NFR-A11Y-05).
+**Độ lệch giữa các lá cùng bay** — thứ khiến một dãy đọc ra là một chuỗi chứ không phải
+một khối gạch:
+
+| Cái gì | Biến | Giá trị |
+| --- | --- | --- |
+| Dãy nhiều lá kéo cùng nhau | `--stagger-run` | `20ms` mỗi lá |
+| Chia bài đầu ván | `--stagger-deal` | `25ms` mỗi lá |
+
+Dưới `prefers-reduced-motion: reduce`, **không có transition nào cả** — `transition-property: none`,
+không phải "thời lượng 0.01ms". Cách quen dùng kia vẫn *khởi động* một transition, và một
+transition đã khởi động thì giá trị của nó đang được nội suy: lá vừa đổi chỗ sẽ báo về
+vị trí nó đang rời đi cho tới khi trình duyệt vẽ khung hình kế. Với người đã xin đừng
+làm nó chuyển động thì đó là sai.
+
+Màn thắng cũng chỉ hiện bài đã xếp cùng dòng chúc mừng, không có canvas chuyển động,
+và ván mới không chạy hiệu ứng chia bài (NFR-A11Y-05).

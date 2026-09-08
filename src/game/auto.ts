@@ -25,6 +25,22 @@ function foundationTarget(s: GameState, from: PileId, count: number): Move | nul
 }
 
 /**
+ * Where a single-tapped card should go (FR-14): a foundation, or nowhere.
+ *
+ * Deliberately narrower than findAutoTarget. One tap is the gesture a player makes
+ * hundreds of times a game without looking, so it may only do the move that is almost
+ * never wrong - putting a card up. Sending a card to some tableau column the player
+ * did not choose is a decision, and a decision needs the second tap.
+ *
+ * It lives here rather than in a component because "can this card go up?" is a
+ * question about the rules, and a component answering it would be a second copy of
+ * them (invariant #6).
+ */
+export function findFoundationTarget(s: GameState, from: PileId): Move | null {
+  return foundationTarget(s, from, 1);
+}
+
+/**
  * Where a double-tapped card should go (FR-05). The order is fixed rather than
  * "first pile that fits": foundation, then a column that already has cards, then an
  * empty one, lowest index inside each group. Two identical boards therefore always

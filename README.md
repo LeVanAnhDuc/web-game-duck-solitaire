@@ -14,7 +14,9 @@ static page that runs on the player's machine.
 - Klondike Solitaire with a draw-1 / draw-3 toggle.
 - Play by tapping or by dragging — both are first-class, on touch and with a mouse.
 - Play the whole game from the keyboard, with visible focus and labelled cards.
-- Double-tap a card to send it to the first legal pile.
+- One tap sends a card up to its foundation; two taps look further, at the columns too.
+- The board animates: cards fly between piles, face-down cards turn over, and a new
+  game deals out from the deck.
 - Finish the boring part in one press once every card is face up.
 - Unlimited undo, back to the first move of the deal.
 - Deals are generated from a seed, so restarting replays the exact same game, and
