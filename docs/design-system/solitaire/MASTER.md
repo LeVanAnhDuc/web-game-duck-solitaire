@@ -1,4 +1,4 @@
-# MASTER · Hệ thống thiết kế `web-game-solitaire`
+# MASTER · Hệ thống thiết kế `web-game-duck-solitaire`
 
 > **Trả lời:** Màu nào, chữ nào, khoảng cách nào — và giá trị đó lấy ở đâu ra?
 > **Trạng thái:** 🟢 đủ
