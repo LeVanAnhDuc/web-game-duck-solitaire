@@ -1,4 +1,4 @@
-# web-game-solitaire
+# 🃏 Klondike Solitaire — every deal comes from a seed, so you can play the same one twice
 
 [![CI](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/ci.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/ci.yml)
 [![Deploy](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/deploy.yml)
@@ -8,6 +8,8 @@ Klondike Solitaire in the browser. No account, no ads, no server — the whole g
 static page that runs on the player's machine.
 
 **Play**: https://levananhduc.github.io/web-game-solitaire/
+
+![Klondike Solitaire gameplay](docs/assets/screenshot.png)
 
 ## Features
 
@@ -21,6 +23,25 @@ static page that runs on the player's machine.
 - Unlimited undo, back to the first move of the deal.
 - Deals are generated from a seed, so restarting replays the exact same game, and
   `?van=<number>` reopens one you liked.
+
+## Controls
+
+Three ways in, and none of them is the poor relation.
+
+| Action | Mouse / touch | Keyboard |
+| ------ | ------------- | -------- |
+| Move between piles | — | `←` `→` across, `↑` `↓` swap rows |
+| Pick a card up, or put it down | Tap the card, then the target | `Space` |
+| Send a card to its foundation | One tap on the card | — |
+| Send a card anywhere it legally fits | Two taps | `Enter` |
+| Drag a card or a run | Press and drag onto the target | — |
+| Deal from the stock | Tap the stock | `Space` on the stock |
+| Change how deep into a run you grab | Grab the card you want to start at | `↑` `↓` while holding a run |
+| Cancel a selection | Tap the card again | `Esc` |
+
+One tap looks only at the foundations, two taps look at the columns as well. That is
+the split that keeps the common move — a card going up — from ever costing you a
+choice of target.
 
 ## Getting started
 
@@ -78,7 +99,7 @@ place a position changes.
 The end-to-end suite runs against `out/` through `scripts/serve.mjs` rather than a dev
 server, because a static export is what gets deployed and a dev server is not it.
 
-## Releases
+## Releases and versioning
 
 Version numbers and release notes are **derived from the commit history**, so neither
 depends on anyone remembering to do something. Both live in scripts you can run
