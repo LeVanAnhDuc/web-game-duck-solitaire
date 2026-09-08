@@ -1,15 +1,15 @@
-# 🃏 Klondike Solitaire — every deal comes from a seed, so you can play the same one twice
+# 🃏 Duck Solitaire — every deal comes from a seed, so you can play the same one twice
 
-[![CI](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/ci.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/ci.yml)
-[![Deploy](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-solitaire/actions/workflows/deploy.yml)
-[![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-solitaire?sort=semver)](https://github.com/LeVanAnhDuc/web-game-solitaire/releases)
+[![CI](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/ci.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/ci.yml)
+[![Deploy](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/deploy.yml)
+[![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-duck-solitaire?sort=semver)](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/releases)
 
 Klondike Solitaire in the browser. No account, no ads, no server — the whole game is a
 static page that runs on the player's machine.
 
-**Play**: https://levananhduc.github.io/web-game-solitaire/
+**Play**: https://levananhduc.github.io/web-game-duck-solitaire/
 
-![Klondike Solitaire gameplay](docs/assets/screenshot.png)
+![Duck Solitaire gameplay](docs/assets/screenshot.png)
 
 ## Features
 

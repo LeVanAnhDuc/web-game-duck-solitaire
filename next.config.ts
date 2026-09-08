@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * `yarn build` keep serving from the root.
  */
 const isGithubPages = process.env.GITHUB_PAGES === "true";
-const basePath = "/web-game-solitaire";
+const basePath = "/web-game-duck-solitaire";
 
 const nextConfig: NextConfig = {
   /**

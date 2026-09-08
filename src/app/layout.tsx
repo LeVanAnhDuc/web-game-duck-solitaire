@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Klondike Solitaire",
+  title: "Duck Solitaire",
   description: "Một ván Klondike chơi ngay trong trình duyệt. Không tài khoản, không quảng cáo.",
 };
 

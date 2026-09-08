@@ -7,7 +7,7 @@
 
 ## 1. Một câu định vị
 
-Một ván Klondike Solitaire chơi ngay trong trình duyệt, không đăng nhập, không quảng cáo, không xin quyền gì — mở là chơi được trên cả điện thoại lẫn máy tính.
+Duck Solitaire là một ván Klondike chơi ngay trong trình duyệt, không đăng nhập, không quảng cáo, không xin quyền gì — mở là chơi được trên cả điện thoại lẫn máy tính.
 
 ## 2. Vấn đề đang giải
 

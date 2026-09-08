@@ -1,4 +1,4 @@
-# Tài liệu dự án `web-game-solitaire`
+# Tài liệu dự án `web-game-duck-solitaire`
 
 ## Bản đồ
 

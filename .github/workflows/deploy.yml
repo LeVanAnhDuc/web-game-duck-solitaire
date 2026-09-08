@@ -36,7 +36,7 @@ jobs:
 
       - run: yarn build
         env:
-          # Only set here. It switches on basePath for the /web-game-solitaire
+          # Only set here. It switches on basePath for the /web-game-duck-solitaire
           # sub-path; `yarn dev` and a local build stay at the root.
           GITHUB_PAGES: 'true'
 

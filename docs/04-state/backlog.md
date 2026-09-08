@@ -7,8 +7,14 @@
 
 ## Đang làm
 
+**Đổi thương hiệu sang `Duck Solitaire`** (2026-09-08). Repo GitHub đổi từ
+`web-game-solitaire` thành `web-game-duck-solitaire`; GitHub redirect URL *repo* cũ
+nhưng **không** redirect đường dẫn Pages cũ, nên link chơi ở dưới chỉ sống sau lần
+deploy tới. **Thư mục local vẫn là** `web-game-solitaire` — thương hiệu đổi, đường dẫn
+không. Từ "Klondike" giữ nguyên ở mọi chỗ nói về *thể loại và luật*; chỉ tên sản phẩm đổi.
+
 Không có việc nào đang dở. `v1.0.2` đang chạy tại
-https://levananhduc.github.io/web-game-solitaire/ ; feature `board-motion` xong trên
+https://levananhduc.github.io/web-game-duck-solitaire/ ; feature `board-motion` xong trên
 nhánh `feat/board-motion`, chưa merge.
 
 Trạng thái đo được ngày 2026-09-07:

@@ -9,7 +9,7 @@
 
 ```mermaid
 graph LR
-  User[Người chơi] --> App[web-game-solitaire<br/>trang tĩnh trong trình duyệt]
+  User[Người chơi] --> App[Duck Solitaire<br/>trang tĩnh trong trình duyệt]
   App --> Pages[(GitHub Pages<br/>chỉ phục vụ file tĩnh)]
 ```
 

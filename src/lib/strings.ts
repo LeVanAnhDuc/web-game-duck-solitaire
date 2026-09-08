@@ -58,7 +58,7 @@ export const RANK_LABELS: Record<Rank, string> = {
 };
 
 export const strings = {
-  appTitle: "Klondike Solitaire",
+  appTitle: "Duck Solitaire",
 
   toolbar: {
     undo: "Hoàn lại",
