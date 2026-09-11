@@ -18,6 +18,7 @@
 | [ADR-0008](0008-doc-dependabot-alert-thay-cho-yarn-audit.md) | Kiểm lỗ hổng dependency bằng dependency review và Dependabot alert, không bằng `yarn audit` | 2026-09-04 | accepted |
 | [ADR-0009](0009-tang-la-phang-thay-cho-chong-bai-so-huu-la.md) | Một tầng lá phẳng, thay cho việc mỗi chồng sở hữu lá của nó | 2026-09-07 | accepted |
 | [ADR-0010](0010-nhan-bo-quy-uoc-view-dung-chung.md) | Nhận bộ quy ước view dùng chung của workspace `web-game` | 2026-09-11 | accepted |
+| [ADR-0011](0011-ux-persona-review-chay-tren-ban-deploy.md) | Chạy UX persona review trên bản deploy, không trên `yarn dev` | 2026-09-12 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

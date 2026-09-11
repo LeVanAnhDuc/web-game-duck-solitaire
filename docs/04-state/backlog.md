@@ -2,7 +2,7 @@
 
 > **Trả lời:** Đang làm gì, tiếp theo làm gì, và đang nợ những gì?
 > **Trạng thái:** 🟢 đủ
-> **Cập nhật:** 2026-09-04 · commit —
+> **Cập nhật:** 2026-09-12 · commit —
 > **Cập nhật khi:** bắt đầu/kết thúc một việc · brainstorm ra việc mới · cố ý đi đường tắt
 
 ## Đang làm
@@ -13,9 +13,28 @@ nhưng **không** redirect đường dẫn Pages cũ, nên link chơi ở dướ
 deploy tới. **Thư mục local vẫn là** `web-game-solitaire` — thương hiệu đổi, đường dẫn
 không. Từ "Klondike" giữ nguyên ở mọi chỗ nói về *thể loại và luật*; chỉ tên sản phẩm đổi.
 
-Không có việc nào đang dở. `v1.0.2` đang chạy tại
-https://levananhduc.github.io/web-game-duck-solitaire/ ; feature `board-motion` xong trên
-nhánh `feat/board-motion`, chưa merge.
+**Đã cài skill `ux-persona-review`** (2026-09-12, nhánh `chore/ux-persona-review`). Sinh
+từ máy phát `<workspace>/.claude/skills/ux-persona-lab`, chạy đủ 6 bước; `red-routes.md`
+đã qua cổng duyệt thủ công. **Chưa chạy lượt persona nào** — chạy lần đầu là việc tiếp theo.
+
+Ba thứ cố định, sửa là mất khả năng so sánh giữa các lần chạy:
+
+- `references/red-routes.md` — 8 route `live` (RR-01…RR-08), 1 route `excluded` (RR-09).
+- `references/personas/` — 6 persona cố định, 10 phiên (8 route + 2 phiên mù).
+- Ghép persona ↔ route chốt ở `references/personas/README.md`.
+
+Ba chỗ project này lệch khỏi mặc định của máy phát, đã ghi trong `SKILL.md` của skill con:
+
+- Thêm giá trị `status: excluded` — cho route đã làm xong nhưng dài hơn trần 40 hành động
+  của một phiên persona. Hiện chỉ RR-09 (màn mừng thắng): ván thắng đo được dài 573 nước,
+  `e2e/win.spec.ts` mới là phép đo đúng cho chặng đó.
+- Token thiết kế lấy ở `docs/design-system/solitaire/MASTER.md`, không phải `.claude/uiux/`
+  như `lib/orchestration.md` giả định (thư mục đó không tồn tại ở project này).
+- `.gitignore` thêm `!/.claude/agents/` — `/.claude/*` đang nuốt hai file agent, clone mới
+  sẽ không có chúng và skill gãy ngay lần chạy đầu.
+
+`v1.0.2` đang chạy tại https://levananhduc.github.io/web-game-duck-solitaire/ ; feature
+`board-motion` xong trên nhánh `feat/board-motion`, chưa merge.
 
 Trạng thái đo được ngày 2026-09-07:
 

@@ -26,3 +26,7 @@ yarn-error.log
 !/.claude/settings.local.json
 !/.claude/skills/
 !/.claude/scripts/
+!/.claude/agents/
+
+# playwright MCP scratch output
+/.playwright-mcp/
