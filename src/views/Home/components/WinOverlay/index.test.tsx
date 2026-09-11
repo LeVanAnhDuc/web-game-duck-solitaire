@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { createDeck } from "@/game/cards";
 import { strings } from "@/lib/strings";
-import { WinOverlay } from "./WinOverlay";
+import { WinOverlay } from "./index";
 
 /** Pretend the OS setting is on or off. The component asks matchMedia and nothing else,
  *  so this is the whole seam for NFR-A11Y-05. */

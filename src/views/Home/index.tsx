@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { Card, CardId } from "@/game/cards";
-import { autoCompleteMoves, findAutoTarget, findFoundationTarget } from "@/game/auto";
+import { findAutoTarget, findFoundationTarget } from "@/game/auto";
 import {
   FOUNDATION_SUITS,
   cardsOf,
@@ -18,13 +18,18 @@ import { useBoardMotion } from "@/hooks/useBoardMotion";
 import { useSelection, type DragSource } from "@/hooks/useSelection";
 import type { MoveIntent } from "@/hooks/moveIntent";
 import { pileHeight, placements, type CardPlacement } from "@/lib/layout";
-import { WIN_CELEBRATION_MS, prefersReducedMotion } from "@/lib/motion";
+
 import { strings } from "@/lib/strings";
-import { BoardLayer } from "./BoardLayer";
-import { CardView } from "./CardView";
-import { PileSlot } from "./PileSlot";
-import { Toolbar } from "./Toolbar";
-import { WinOverlay } from "./WinOverlay";
+import { BoardLayer } from "./mains/BoardLayer";
+import { CardView } from "./components/CardView";
+import { PileSlot } from "./components/PileSlot";
+import { Toolbar } from "./mains/Toolbar";
+import { WinOverlay } from "./components/WinOverlay";
+
+// ghosts
+import { AutoCompleteRunner } from "./ghosts/AutoCompleteRunner";
+import { CelebrateWin } from "./ghosts/CelebrateWin";
+import { FocusActivePile } from "./ghosts/FocusActivePile";
 
 /**
  * The board: the only place that knows how the piles are arranged, how the keyboard
@@ -53,7 +58,6 @@ const ALL_PILES = ROWS.flat();
 
 /** Long enough to see a card land, short enough not to feel like waiting. Shorter than
  *  the flight itself, so consecutive cards overlap into one stream. */
-const AUTO_STEP_MS = 110;
 const REJECT_FLASH_MS = 420;
 
 function labelFor(pile: PileId): string {
@@ -74,7 +78,7 @@ function faceDownCountOf(state: GameState, pile: PileId): number {
   return pile.kind === "stock" ? state.stock.length : 0;
 }
 
-export function GameBoard() {
+export function Home() {
   const game = useGame();
   const [rejected, setRejected] = useState<{ pile: string; card: CardId | null }>({
     pile: "",
@@ -122,50 +126,18 @@ export function GameBoard() {
 
   const selection = useSelection(handleIntent, pileByKey);
 
-  /**
-   * Auto-complete re-asks the engine for the next move on every tick rather than
-   * running a precomputed list. That is what makes it cancellable: the moment the
-   * player touches anything, autoRunning goes false and the sequence simply stops
-   * (invariant #9).
-   */
-  useEffect(() => {
-    if (!autoRunning) return;
-    const next = autoCompleteMoves(game.state)[0];
-    if (!next) {
-      setAutoRunning(false);
-      return;
-    }
-    const id = window.setTimeout(() => game.playMove(next), AUTO_STEP_MS);
-    return () => window.clearTimeout(id);
-  }, [autoRunning, game]);
 
-  /**
-   * The four foundations light up in turn before the overlay covers the board - the
-   * board is what the player just finished, and it deserves the moment. Under reduced
-   * motion there is nothing to watch, so the overlay comes straight up.
-   */
-  useEffect(() => {
-    if (!game.won) {
-      setCelebrating(false);
-      return;
-    }
-    setAutoRunning(false);
-    if (prefersReducedMotion()) return;
-    setCelebrating(true);
-    const done = window.setTimeout(() => setCelebrating(false), WIN_CELEBRATION_MS);
-    return () => window.clearTimeout(done);
-  }, [game.won]);
 
-  /** Roving tabindex: only move focus once the player has actually used the keyboard,
-   *  so loading the page does not steal focus from wherever the browser put it. */
-  useEffect(() => {
-    if (!keyboardActive) return;
-    const pile = ROWS[focus.row]?.[focus.col];
-    if (!pile) return;
-    boardRef.current
-      ?.querySelector<HTMLElement>(`[data-pile="${pileKey(pile)}"]`)
-      ?.focus({ preventScroll: true });
-  }, [focus, keyboardActive]);
+  /*
+   * Ba việc nền của màn này nằm trong ghosts/: AutoCompleteRunner · CelebrateWin ·
+   * FocusActivePile (R-04). Callback truyền cho chúng phải ỔN ĐỊNH — arrow inline sẽ
+   * khởi động lại timer mỗi render, làm mỗi bước auto-complete dài ra.
+   */
+  const setCelebratingStable = useCallback((on: boolean) => setCelebrating(on), []);
+
+  /** `null` khi con trỏ không nằm trên một chồng thật — khi đó không dịch focus. */
+  const focusTarget = ROWS[focus.row]?.[focus.col];
+  const focusTargetKey = focusTarget ? pileKey(focusTarget) : null;
 
   const focusedPile = ROWS[focus.row]?.[focus.col] ?? TABLEAU[0]!;
 
@@ -384,6 +356,28 @@ export function GameBoard() {
       ref={boardRef}
       style={{ padding: 0 }}
     >
+      {/*
+        Ghost: chỉ chạy side-effect, không vẽ gì. Render VÔ ĐIỀU KIỆN và giữ đúng thứ
+        tự ba effect từng nằm trong file này — effect của con chạy trước effect của
+        cha, theo đúng thứ tự con (R-04).
+      */}
+      <AutoCompleteRunner
+        running={autoRunning}
+        state={game.state}
+        onPlay={game.playMove}
+        onExhausted={stopAuto}
+      />
+      <CelebrateWin
+        won={game.won}
+        onCelebrating={setCelebratingStable}
+        onStopAuto={stopAuto}
+      />
+      <FocusActivePile
+        active={keyboardActive}
+        pileKey={focusTargetKey}
+        container={boardRef}
+      />
+
       <header
         className="flex items-center justify-between text-[13px] text-muted"
         style={{ padding: "var(--pad-board)" }}

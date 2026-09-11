@@ -1,5 +1,5 @@
-import { GameBoard } from "@/components/GameBoard";
+import { Home } from "@/views/Home";
 
 export default function Page() {
-  return <GameBoard />;
+  return <Home />;
 }

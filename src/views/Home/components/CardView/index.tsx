@@ -19,7 +19,35 @@ import { RANK_LABELS, SUIT_GLYPHS, strings } from "@/lib/strings";
  * NFR-PERF-02 protects.
  */
 
-export type CardViewProps = {
+/** The DOM id a PileSlot's aria-owns points at. */
+export function cardElementId(cardId: string): string {
+  return `card-${cardId}`;
+}
+
+/** NFR-A11Y-03. At 320px a drawn card is ~41px wide, so the hit area cannot be the
+ *  card: it is a transparent overlay that spills over the neighbours instead. */
+const MIN_TOUCH_PX = 44;
+
+export function CardView({
+  card,
+  faceUp,
+  x,
+  y,
+  z,
+  selected = false,
+  stackCount = 1,
+  pileKey,
+  indexInPile,
+  delay,
+  instant = false,
+  rejected = false,
+  interactive = true,
+  onPointerDown,
+  onClick,
+  onDoubleClick,
+  onKeyDown,
+  tabIndex = -1,
+}: {
   card: Card;
   faceUp: boolean;
   /** CSS lengths, normally `calc()` expressions from lib/layout.ts. */
@@ -59,37 +87,7 @@ export type CardViewProps = {
   onDoubleClick?: (event: MouseEvent<HTMLDivElement>) => void;
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
   tabIndex?: number;
-};
-
-/** The DOM id a PileSlot's aria-owns points at. */
-export function cardElementId(cardId: string): string {
-  return `card-${cardId}`;
-}
-
-/** NFR-A11Y-03. At 320px a drawn card is ~41px wide, so the hit area cannot be the
- *  card: it is a transparent overlay that spills over the neighbours instead. */
-const MIN_TOUCH_PX = 44;
-
-export function CardView({
-  card,
-  faceUp,
-  x,
-  y,
-  z,
-  selected = false,
-  stackCount = 1,
-  pileKey,
-  indexInPile,
-  delay,
-  instant = false,
-  rejected = false,
-  interactive = true,
-  onPointerDown,
-  onClick,
-  onDoubleClick,
-  onKeyDown,
-  tabIndex = -1,
-}: CardViewProps) {
+}) {
   const base = faceUp
     ? strings.card.label(card.suit, card.rank, stackCount)
     : strings.card.faceDown;

@@ -5,7 +5,7 @@ import type { CardId } from "@/game/cards";
 import { pileKey } from "@/game/state";
 import { FLIGHT_Z, pileOrigin, type CardPlacement } from "@/lib/layout";
 import type { BoardMotion } from "@/hooks/useBoardMotion";
-import { CardView } from "./CardView";
+import { CardView } from "../../components/CardView";
 
 /**
  * All 52 cards, in one absolutely positioned layer.

@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { cardId, type Card } from "@/game/cards";
 import { strings } from "@/lib/strings";
-import { CardView, type CardViewProps } from "./CardView";
+import { CardView } from "./index";
+
+// Props viết inline trong signature (R-16), nên test lấy kiểu từ chính component.
+type CardViewProps = Parameters<typeof CardView>[0];
 
 const queenOfHearts: Card = { id: cardId("hearts", 12), suit: "hearts", rank: 12 };
 const sevenOfSpades: Card = { id: cardId("spades", 7), suit: "spades", rank: 7 };

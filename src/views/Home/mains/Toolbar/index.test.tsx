@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { strings } from "@/lib/strings";
-import { Toolbar, type ToolbarProps } from "./Toolbar";
+import { Toolbar } from "./index";
+
+// Props viết inline trong signature (R-16), nên test lấy kiểu từ chính component.
+type ToolbarProps = Parameters<typeof Toolbar>[0];
 
 function setup(overrides: Partial<ToolbarProps> = {}) {
   const props: ToolbarProps = {

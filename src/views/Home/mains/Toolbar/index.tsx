@@ -10,17 +10,6 @@ import { strings } from "@/lib/strings";
  * the game itself, only whether a control is currently offerable.
  */
 
-export type ToolbarProps = {
-  onUndo: () => void;
-  onRestart: () => void;
-  onNewGame: () => void;
-  onAutoComplete: () => void;
-  drawMode: DrawMode;
-  onDrawModeChange: (mode: DrawMode) => void;
-  canUndo: boolean;
-  canAutoComplete: boolean;
-};
-
 /** NFR-A11Y-03 again: the button, not just its icon, is the 44px target. */
 const CONTROL = "inline-flex min-h-[44px] items-center gap-2 rounded px-3 text-[14px] font-medium";
 
@@ -33,7 +22,16 @@ export function Toolbar({
   onDrawModeChange,
   canUndo,
   canAutoComplete,
-}: ToolbarProps) {
+}: {
+  onUndo: () => void;
+  onRestart: () => void;
+  onNewGame: () => void;
+  onAutoComplete: () => void;
+  drawMode: DrawMode;
+  onDrawModeChange: (mode: DrawMode) => void;
+  canUndo: boolean;
+  canAutoComplete: boolean;
+}) {
   return (
     <div
       role="toolbar"

@@ -4,7 +4,7 @@ import type { KeyboardEvent, MouseEvent } from "react";
 import type { CardId } from "@/game/cards";
 import { pileKey, type PileId } from "@/game/state";
 import { strings } from "@/lib/strings";
-import { cardElementId } from "./CardView";
+import { cardElementId } from "../CardView";
 
 /**
  * The place a pile occupies: its drop area, its name, the outline when it is empty,

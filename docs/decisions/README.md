@@ -17,6 +17,7 @@
 | [ADR-0007](0007-phien-ban-va-release-note-suy-ra-tu-lich-su-commit.md) | Số phiên bản và release note suy ra từ lịch sử commit | 2026-09-04 | accepted |
 | [ADR-0008](0008-doc-dependabot-alert-thay-cho-yarn-audit.md) | Kiểm lỗ hổng dependency bằng dependency review và Dependabot alert, không bằng `yarn audit` | 2026-09-04 | accepted |
 | [ADR-0009](0009-tang-la-phang-thay-cho-chong-bai-so-huu-la.md) | Một tầng lá phẳng, thay cho việc mỗi chồng sở hữu lá của nó | 2026-09-07 | accepted |
+| [ADR-0010](0010-nhan-bo-quy-uoc-view-dung-chung.md) | Nhận bộ quy ước view dùng chung của workspace `web-game` | 2026-09-11 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

@@ -1,5 +1,17 @@
 {
   "extends": ["next/core-web-vitals", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "arrow-body-style": ["error", "as-needed"],
+    "object-shorthand": "warn",
+    "react/jsx-fragments": ["warn", "syntax"],
+    "@typescript-eslint/array-type": ["warn", { "default": "array" }],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "separate-type-imports" }
+    ]
+  },
   "overrides": [
     {
       "files": ["src/game/**/*.ts"],
@@ -10,7 +22,18 @@
           {
             "patterns": [
               {
-                "group": ["react", "react-dom", "next", "next/*", "@/hooks/*", "@/components/*"],
+                "group": [
+                  "react",
+                  "react-dom",
+                  "next",
+                  "next/*",
+                  "@/hooks",
+                  "@/hooks/*",
+                  "@/views",
+                  "@/views/*",
+                  "@/components",
+                  "@/components/*"
+                ],
                 "message": "src/game must stay framework-free - invariant #1. Move this to hooks/ or components/."
               }
             ]

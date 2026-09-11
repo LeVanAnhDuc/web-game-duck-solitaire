@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { colorOf, type Card } from "@/game/cards";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { RANK_LABELS, SUIT_GLYPHS, strings } from "@/lib/strings";
 
 /**
@@ -19,24 +20,10 @@ export type WinOverlayProps = {
   onPlayAgain: () => void;
 };
 
-const MEDIA_REDUCE = "(prefers-reduced-motion: reduce)";
-
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia(MEDIA_REDUCE).matches;
-}
-
 export function WinOverlay({ cards, moveCount, onPlayAgain }: WinOverlayProps) {
-  const [reduced, setReduced] = useState(prefersReducedMotion);
+  // matchMedia đi qua hook, không gọi thẳng trong component (R-19).
+  const reduced = useReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(MEDIA_REDUCE);
-    const onChange = () => setReduced(query.matches);
-    query.addEventListener?.("change", onChange);
-    return () => query.removeEventListener?.("change", onChange);
-  }, []);
 
   useEffect(() => {
     dialogRef.current?.focus();

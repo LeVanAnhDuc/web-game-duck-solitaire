@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { cardId } from "@/game/cards";
 import type { PileId } from "@/game/state";
 import { strings } from "@/lib/strings";
-import { PileSlot } from "./PileSlot";
+import { PileSlot } from "./index";
 
 const T3: PileId = { kind: "tableau", index: 3 };
 const F0: PileId = { kind: "foundation", index: 0 };
