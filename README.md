@@ -22,7 +22,10 @@ static page that runs on the player's machine.
 - Finish the boring part in one press once every card is face up.
 - Unlimited undo, back to the first move of the deal.
 - Deals are generated from a seed, so restarting replays the exact same game, and
-  `?van=<number>` reopens one you liked.
+  `?van=<number>` reopens one you liked — the page now says so, instead of leaving you
+  to work it out.
+- A held card wears a ring, an exhausted stock shows you it can be turned over, and a
+  refused move is announced rather than only flashed.
 
 ## Controls
 

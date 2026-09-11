@@ -1,6 +1,7 @@
 "use client";
 
 import type { KeyboardEvent, MouseEvent } from "react";
+import { RotateCw } from "lucide-react";
 import type { CardId } from "@/game/cards";
 import { pileKey, type PileId } from "@/game/state";
 import { strings } from "@/lib/strings";
@@ -25,6 +26,13 @@ export type PileSlotProps = {
   cardIds: readonly CardId[];
   /** Flashes the pile for one beat after an illegal move (design.md section 4). */
   rejected?: boolean;
+  /**
+   * This pile is the stock, and tapping it while empty deals the waste back. Draws a
+   * recycle mark inside the outline, because otherwise an exhausted stock is the same
+   * rectangle as an empty foundation - and the two mean opposite things: one is "tap
+   * here to keep playing", the other is "nothing to do here yet".
+   */
+  recyclable?: boolean;
   /** Pulses once when a card lands here. */
   accepted?: boolean;
   /** Lights up in sequence on a win. */
@@ -43,6 +51,7 @@ export function PileSlot({
   height,
   cardIds,
   rejected = false,
+  recyclable = false,
   accepted = false,
   celebrating = false,
   celebrationIndex = 0,
@@ -94,6 +103,16 @@ export function PileSlot({
               borderRadius: "var(--radius-card)",
             }}
           />
+          {recyclable && (
+            <div
+              aria-hidden="true"
+              data-recyclable="true"
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ color: "var(--edge-empty)" }}
+            >
+              <RotateCw size="42%" strokeWidth={2.5} />
+            </div>
+          )}
         </>
       )}
     </div>

@@ -24,6 +24,8 @@
   /* State */
   --ring-focus: #ffd166;
   --ring-focus-edge: #0b3d2e;
+  --ring-selected: #ffd166;
+  --shadow-lift: 0 6px 14px rgb(0 0 0 / 0.45);
   --bg-reject: #e4572e;
   --edge-empty: #7fa893;
   --edge-card: #fdfdf8;
@@ -123,6 +125,34 @@ body {
   outline: 2px solid var(--ring-focus);
   outline-offset: 0;
   box-shadow: 0 0 0 4px var(--ring-focus-edge);
+}
+
+/* A held card, same two-layer reasoning as the focus ring: `--ring-selected` clears 3:1
+   against the felt but only 1.41:1 against a white card face, and a held card sits next
+   to both. One pixel thicker per layer than the focus ring, so a card that is focused
+   AND held still reads as two states rather than one.
+
+   Until 2026-09-12 the only mark of a held card was `--shadow-lift` — a dark shadow on
+   a dark table. A persona zoomed into her own screenshot and still could not tell the
+   card apart from its neighbours. See docs/ux-reviews/2026-09-12-duck-solitaire.md F-01
+   and NFR-A11Y-06. */
+.card-selected {
+  box-shadow:
+    0 0 0 3px var(--ring-selected),
+    0 0 0 6px var(--ring-focus-edge),
+    var(--shadow-lift);
+}
+
+/* The keyboard map is `sr-only` for screen readers and hidden from everyone else, which
+   left out the people who use a keyboard and CAN see: a magnifier user, a broken mouse,
+   a sore wrist. `:focus-visible` only fires for keyboard interaction, so this shows the
+   map to exactly those people and stays out of the way of touch and mouse. */
+.keyboard-map {
+  display: none;
+}
+
+.board-area:has(:focus-visible) .keyboard-map {
+  display: block;
 }
 
 @keyframes reject-flash {

@@ -32,6 +32,37 @@ describe("PileSlot", () => {
     expect(filled.container.querySelector("[data-empty]")).toBeNull();
   });
 
+  // An exhausted stock and an empty foundation were the same rectangle until
+  // 2026-09-12. A player hesitated in front of it, thought the game had broken, and
+  // only went on because he risked a tap - report F-03.
+  it("marks an exhausted stock apart from every other empty pile", () => {
+    const stock = render(
+      <PileSlot {...props} pileId={{ kind: "stock" }} label={strings.pile.stockEmpty} recyclable />,
+    );
+    expect(stock.container.querySelector("[data-recyclable]")).not.toBeNull();
+    expect(screen.getByRole("group", { name: strings.pile.stockEmpty })).toBeTruthy();
+    stock.unmount();
+
+    // Every other empty pile keeps the bare outline: the mark means "tapping here does
+    // something", so it must not appear where tapping does nothing.
+    const foundation = render(<PileSlot {...props} pileId={F0} label={strings.pile.foundation("spades")} />);
+    expect(foundation.container.querySelector("[data-recyclable]")).toBeNull();
+    expect(foundation.container.querySelector("[data-empty]")).not.toBeNull();
+  });
+
+  it("drops the recycle mark as soon as the stock has cards again", () => {
+    const { container } = render(
+      <PileSlot
+        {...props}
+        pileId={{ kind: "stock" }}
+        label={strings.pile.stock}
+        cardIds={[cardId("spades", 1)]}
+        recyclable
+      />,
+    );
+    expect(container.querySelector("[data-recyclable]")).toBeNull();
+  });
+
   it("claims its cards through aria-owns, since they are no longer its children", () => {
     // The cards live in BoardLayer now. Without this the accessibility tree would have
     // no idea which pile a card belongs to.

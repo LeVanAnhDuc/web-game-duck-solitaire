@@ -107,7 +107,7 @@ export function CardView({
       tabIndex={tabIndex}
       className={`focus-ring absolute left-0 top-0 select-none${
         interactive ? " pointer-events-auto" : ""
-      }${rejected ? " card-reject" : ""}`}
+      }${rejected ? " card-reject" : ""}${selected ? " card-selected" : ""}`}
       style={{
         width: "var(--card-w)",
         height: "var(--card-h)",
@@ -118,7 +118,8 @@ export function CardView({
         transform: `translate(${x}, ${y})${selected ? " scale(1.04)" : ""}`,
         transition: instant ? "none" : "transform var(--dur-move) var(--ease-move)",
         transitionDelay: delay,
-        boxShadow: selected ? "0 6px 14px rgb(0 0 0 / 0.45)" : undefined,
+        // The lift and the ring both live in `.card-selected` (globals.css), because
+        // MASTER.md is the only place a visual value is allowed to be decided.
         // The browser must not claim the gesture, or a drag turns into a scroll.
         touchAction: "none",
       }}

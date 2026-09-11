@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Duck Solitaire">
+  <!-- A card back on the felt, in the two colours MASTER.md already owns: the table
+       #0B3D2E and the card back #4A90D9. No new value is decided here.
+
+       This file exists because the browser asks for /favicon.ico at the ORIGIN root
+       when a page declares no icon at all - not under basePath - and got a 404 twice on
+       every load, against NFR-REL-04. Next generates the <link rel="icon"> with the
+       right basePath from this file. SVG rather than PNG: a few hundred bytes, no
+       binary asset, and nothing fetched from outside (NFR-DATA-01). -->
+  <rect width="32" height="32" rx="6" fill="#0B3D2E" />
+  <rect x="8" y="5" width="16" height="22" rx="3" fill="#4A90D9" stroke="#FDFDF8" stroke-width="2" />
+  <path d="M11 9 L21 9 M11 13 L21 13 M11 17 L21 17 M11 21 L21 21"
+        stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.55" />
+</svg>
