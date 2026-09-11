@@ -27,3 +27,6 @@ yarn-error.log
 !/.claude/skills/
 !/.claude/scripts/
 !/.claude/agents/
+
+# playwright MCP scratch output
+/.playwright-mcp/
