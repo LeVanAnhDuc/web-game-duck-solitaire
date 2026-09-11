@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import { FastForward, Plus, RotateCcw, Undo2 } from "lucide-react";
 import type { DrawMode } from "@/game/state";
 import { strings } from "@/lib/strings";
@@ -22,6 +22,7 @@ export function Toolbar({
   onDrawModeChange,
   canUndo,
   canAutoComplete,
+  drawModeRef,
 }: {
   onUndo: () => void;
   onRestart: () => void;
@@ -31,6 +32,8 @@ export function Toolbar({
   onDrawModeChange: (mode: DrawMode) => void;
   canUndo: boolean;
   canAutoComplete: boolean;
+  /** So the view can hand focus back here after its confirm dialog closes (F-09). */
+  drawModeRef?: RefObject<HTMLSelectElement | null>;
 }) {
   return (
     <div
@@ -60,6 +63,7 @@ export function Toolbar({
       </ToolbarButton>
 
       <select
+        ref={drawModeRef}
         aria-label={strings.toolbar.drawMode}
         className={`${CONTROL} border border-muted bg-toolbar text-fg`}
         value={String(drawMode)}

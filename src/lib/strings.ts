@@ -60,6 +60,14 @@ export const RANK_LABELS: Record<Rank, string> = {
 export const strings = {
   appTitle: "Duck Solitaire",
 
+  /**
+   * NFR-DATA-01 stated as a promise instead of an absence. Six personas out of six said
+   * they would hesitate to type anything here, and the reason they gave was always the
+   * same: nothing on the page says who is behind it. Not collecting anything is this
+   * product's strongest claim and it was the one thing never said out loud - report F-05.
+   */
+  tagline: "Không tài khoản · không quảng cáo · không lưu gì",
+
   toolbar: {
     undo: "Hoàn lại",
     restart: "Chơi lại",

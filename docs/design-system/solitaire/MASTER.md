@@ -46,7 +46,8 @@ và người dùng phải phân biệt được nó với mặt bàn mà không 
 | --- | --- | --- | --- |
 | Vành tiêu điểm — lớp trong | `--ring-focus` | `#FFD166` | **8.46:1** trên nền bàn ✓ |
 | Vành tiêu điểm — lớp ngoài | `--ring-focus-edge` | `#0B3D2E` | **11.96:1** trên mặt bài ✓ |
-| Lá đang chọn | `--ring-selected` | `#FFD166` | như trên |
+| Lá đang chọn — lớp trong | `--ring-selected` | `#FFD166` | như trên |
+| Lá đang chọn — bóng nhấc | `--shadow-lift` | `0 6px 14px rgb(0 0 0 / 0.45)` | không phải chỉ báo, xem dưới |
 | Nháy khi từ chối nước đi | `--bg-reject` | `#E4572E` | **3.31:1** trên nền bàn ✓ |
 | Viền chồng bài rỗng | `--edge-empty` | `#7FA893` | **4.60:1** trên nền bàn ✓ |
 
@@ -55,6 +56,19 @@ ngoài. Một vành một màu không thể đạt 3:1 trên cả nền bàn xan
 (`#FFD166` trên mặt bài chỉ 1.41:1). Hai lớp thì luôn có ít nhất một lớp tương phản
 đủ với thứ nằm dưới, bất kể lá bài đang ở đâu. Đây là điều kiện để NFR-A11Y-02 đứng
 được — nếu không, tiêu điểm sẽ tàng hình đúng ở chỗ nó cần thấy nhất.
+
+**Lá đang chọn cũng hai lớp, cùng lý do** — 3px `--ring-selected` bên trong, 3px
+`--ring-focus-edge` bên ngoài. Dày hơn vành tiêu điểm một pixel mỗi lớp, để một lá
+vừa có tiêu điểm vừa đang được chọn vẫn đọc ra được là hai trạng thái chồng nhau chứ
+không phải một.
+
+`--shadow-lift` **không phải** chỉ báo trạng thái — nó là cú nhấc, đi kèm
+`scale(1.04)`, và chỉ có nghĩa khi đã có vành. Lịch sử chỗ này đáng ghi lại: tới
+2026-09-12 nó là thứ **duy nhất** đánh dấu lá đang chọn, và một bóng tối trên nền bàn
+tối thì gần như vô hình — persona `p21` phóng to ảnh ra xem còn không thấy khác biệt
+(xem [báo cáo](../../ux-reviews/2026-09-12-duck-solitaire.md) F-01). `--ring-selected`
+đã nằm trong bảng này từ đầu nhưng **chưa bao giờ được chép sang `globals.css`**.
+Đó là lý do `NFR-A11Y-06` tồn tại.
 
 ## 2. Chữ
 

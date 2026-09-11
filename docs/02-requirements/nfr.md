@@ -41,6 +41,7 @@ dạng ~~(bỏ)~~ kèm lý do, vì ID không được tái dùng. -->
 | NFR-A11Y-03 | Vùng bấm của một lá bài ≥ 44×44px ở mọi bề rộng màn hình được hỗ trợ | đo trong E2E ở 320px |
 | NFR-A11Y-04 | Mỗi lá bài có nhãn đọc được ("Bích 7, ngửa"); mỗi chồng bài là một vùng có tên | review + axe |
 | NFR-A11Y-05 | Tôn trọng `prefers-reduced-motion`: bài đổi chỗ tức thì, màn mừng không có hiệu ứng động | review CSS + thử tay |
+| NFR-A11Y-06 | Mọi chỉ báo **trạng thái** (đang chọn · bị từ chối · đang có tiêu điểm) đạt ≥ 3:1 so với thứ nằm dưới nó, **và** có ít nhất một kênh **không phụ thuộc chuyển động**. Vế sau là phần đắt: `NFR-A11Y-05` tắt sạch animation, nên một phản hồi chỉ tồn tại dưới dạng animation sẽ biến mất hoàn toàn với người đã xin đừng animate | đo tương phản + chạy lại với `prefers-reduced-motion: reduce` bật. Sinh ra sau lượt persona review 2026-09-12 (F-01, F-02) |
 
 ## i18n
 

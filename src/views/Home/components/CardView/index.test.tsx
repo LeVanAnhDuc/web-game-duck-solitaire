@@ -100,6 +100,21 @@ describe("CardView", () => {
     expect(held.style.transform).toBe("translate(10px, 20px) scale(1.04)");
   });
 
+  // NFR-A11Y-06. Until 2026-09-12 the lift shadow was the ONLY mark of a held card -
+  // dark on a dark table, invisible in practice. The ring is what makes the state
+  // visible; the shadow rides along inside it.
+  it("rings a held card so the state is visible, not just lifted", () => {
+    const plain = render(at({ card: queenOfHearts, faceUp: true }));
+    expect(screen.getByLabelText("Cơ Đầm").className).not.toContain("card-selected");
+    plain.unmount();
+
+    render(at({ card: queenOfHearts, faceUp: true, selected: true }));
+    const held = screen.getByLabelText(`Cơ Đầm, ${strings.card.selected}`);
+    expect(held.className).toContain("card-selected");
+    // The shadow is no longer written inline: MASTER.md owns the value now.
+    expect(held.style.boxShadow).toBe("");
+  });
+
   it("drops its transition while the deal is still stacked on the stock", () => {
     render(at({ card: queenOfHearts, faceUp: true, instant: true }));
     expect(screen.getByLabelText("Cơ Đầm").style.transition).toBe("none");
