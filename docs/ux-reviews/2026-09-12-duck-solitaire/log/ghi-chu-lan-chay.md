@@ -14,7 +14,7 @@ GitHub Pages chính là `main`. Nên mọi phát hiện ánh xạ thẳng vào c
 độ trễ giữa cái được test và cái được sửa.
 
 Đây thực ra **tốt hơn** localhost cho lần chạy này: nó test đúng `basePath`, đúng bản
-export tĩnh, đúng độ trễ mạng thật — ba thứ `yarn dev` không tái hiện được. Lỗi
+export tĩnh, đúng độ trễ mạng thật — ba thứ `pnpm dev` không tái hiện được. Lỗi
 `favicon.ico` 404 ở mục 5 là loại lỗi chỉ lộ ra khi chạy dưới `basePath`.
 
 ## 2. Lượt chạy đầu bị bỏ — agent lấy sai công cụ trình duyệt

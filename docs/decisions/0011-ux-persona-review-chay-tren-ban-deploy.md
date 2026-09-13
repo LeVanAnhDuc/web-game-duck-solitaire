@@ -1,4 +1,4 @@
-# ADR-0011 · Chạy UX persona review trên bản deploy, không trên `yarn dev`
+# ADR-0011 · Chạy UX persona review trên bản deploy, không trên `pnpm dev`
 
 > **Ngày:** 2026-09-12
 > **Trạng thái:** accepted
@@ -6,7 +6,7 @@
 
 ## 1. Bối cảnh
 
-`ux-persona-review` khai port `3000` và bảo người điều phối kiểm tra `yarn dev` có đang
+`ux-persona-review` khai port `3000` và bảo người điều phối kiểm tra `pnpm dev` có đang
 chạy không. Mặc định đó thừa hưởng từ máy phát, vốn viết cho các app gen-1 có server.
 
 Dự án này không có server. Thứ người chơi thật sự mở là **một trang tĩnh đã export, phục
@@ -36,8 +36,8 @@ persona đi nhận xét một phiên bản không còn tồn tại trong repo.
 
 | Phương án | Vì sao loại |
 | --- | --- |
-| `yarn dev` ở `:3000` (mặc định của skill) | Không áp `basePath`, không qua export, không có độ trễ thật — đúng ba thứ sinh ra lỗi loại `favicon.ico`. Và `:3000` trùng client Ducker ID, persona có thể đi nhận xét nhầm sản phẩm |
-| `yarn build` rồi `node scripts/serve.mjs 4183 out` | Gần đúng nhất trong các phương án local: có export, có `basePath`. Nhưng vẫn là mạng loopback — `NFR-PERF-02` và cảm giác chờ của persona điện thoại mạng chậm đều vô nghĩa trên loopback. Vẫn dùng được khi cần chạy offline |
+| `pnpm dev` ở `:3000` (mặc định của skill) | Không áp `basePath`, không qua export, không có độ trễ thật — đúng ba thứ sinh ra lỗi loại `favicon.ico`. Và `:3000` trùng client Ducker ID, persona có thể đi nhận xét nhầm sản phẩm |
+| `pnpm build` rồi `node scripts/serve.mjs 4183 out` | Gần đúng nhất trong các phương án local: có export, có `basePath`. Nhưng vẫn là mạng loopback — `NFR-PERF-02` và cảm giác chờ của persona điện thoại mạng chậm đều vô nghĩa trên loopback. Vẫn dùng được khi cần chạy offline |
 | Chạy cả hai rồi so | Gấp đôi chi phí một lượt (10 phiên → 20) để trả lời một câu hỏi không ai hỏi. Khác biệt giữa hai môi trường là chuyện của CI, không phải của persona |
 
 ## 4. Hệ quả

@@ -192,4 +192,4 @@ Không đổi: tiêu điểm vẫn ở `PileSlot` với roving tabindex, vùng c
 - Mới: dưới `reducedMotion: 'reduce'`, ván hiện ra không qua hiệu ứng chia bài và màn thắng mở ngay.
 - Giữ nguyên: không cuộn ngang ở 320/375/768/1440, vùng chạm ≥ 44px, console sạch, không request mạng, `localStorage` trống.
 
-**Ngưỡng:** `yarn check:bundle` phải vẫn dưới 150KB gzip (hôm nay 110KB). Hiệu ứng là CSS, nên phần tăng là `layout.ts` cộng `BoardLayer` — dự kiến vài KB.
+**Ngưỡng:** `pnpm check:bundle` phải vẫn dưới 150KB gzip (hôm nay 110KB). Hiệu ứng là CSS, nên phần tăng là `layout.ts` cộng `BoardLayer` — dự kiến vài KB.

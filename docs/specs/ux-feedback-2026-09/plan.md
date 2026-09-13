@@ -47,13 +47,13 @@ component, cuối cùng mới tới máy trạng thái bàn phím.
 ## Nhóm E — icon
 
 - [x] **E1** `src/app/icon.svg` dùng đúng màu đã có (`#4A90D9` trên `#0B3D2E`).
-- [x] **E2** Kiểm bằng `yarn build` rằng `out/` có icon và HTML tham chiếu nó kèm `basePath`.
+- [x] **E2** Kiểm bằng `pnpm build` rằng `out/` có icon và HTML tham chiếu nó kèm `basePath`.
 
 ## Nhóm F — kiểm và chốt
 
-- [x] **F1** `yarn test` · `yarn typecheck` · `yarn lint` — tất cả xanh.
-- [x] **F2** `yarn build` rồi `yarn check:bundle` — vẫn dưới trần 150KB của `NFR-PERF-05`.
-- [x] **F3** `yarn test:e2e` — 141 test ở 320/375/768/1440 vẫn xanh. Nhóm D là nhóm dễ làm
+- [x] **F1** `pnpm test` · `pnpm typecheck` · `pnpm lint` — tất cả xanh.
+- [x] **F2** `pnpm build` rồi `pnpm check:bundle` — vẫn dưới trần 150KB của `NFR-PERF-05`.
+- [x] **F3** `pnpm test:e2e` — 141 test ở 320/375/768/1440 vẫn xanh. Nhóm D là nhóm dễ làm
       đỏ nhất; nếu đỏ thì đọc kỹ trước khi sửa test, vì test có thể đang đúng.
 - [x] **F4** Chạy app thật và **nhìn tận mắt** ở 375 và 1440: vành chọn, icon chồng rút cạn,
       header mới, hướng dẫn phím hiện khi Tab. Kèm ảnh chụp.
@@ -70,10 +70,10 @@ nút chia sẻ. Lý do từng cái ở `design.md` §4.
 
 | Kiểm | Kết quả |
 | --- | --- |
-| `yarn test` | 249 xanh (trước: 238) |
-| `yarn typecheck` · `yarn lint` | sạch |
-| `yarn test:e2e` | **177 xanh** ở 320/375/768/1440 (trước: 141), 3 skipped |
-| `yarn check:bundle` | 112.3 kB / 150 kB — `NFR-PERF-05` còn dư |
+| `pnpm test` | 249 xanh (trước: 238) |
+| `pnpm typecheck` · `pnpm lint` | sạch |
+| `pnpm test:e2e` | **177 xanh** ở 320/375/768/1440 (trước: 141), 3 skipped |
+| `pnpm check:bundle` | 112.3 kB / 150 kB — `NFR-PERF-05` còn dư |
 
 **F3 làm đỏ hai lần, và cả hai lần test là bên đúng:**
 
