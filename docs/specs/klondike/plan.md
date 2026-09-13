@@ -18,7 +18,7 @@ TDD cho mọi việc có logic: test đỏ trước, code sau, test xanh, rồi 
 - [x] `vitest.config.mts` + `vitest.setup.ts`, `playwright.config.ts`
 - [x] `.gitignore` bổ sung `node_modules/`, `.next/`, `out/`, `test-results/`, `playwright-report/`
 - [x] `src/app/layout.tsx` (`lang="vi"`) + `src/app/globals.css`
-- [x] `yarn install` chạy được, `yarn typecheck` xanh trên kho rỗng
+- [x] `pnpm install` chạy được, `pnpm typecheck` xanh trên kho rỗng
 
 ## Giai đoạn 1 · Engine — `src/game/`
 
@@ -65,6 +65,6 @@ Phụ thuộc giai đoạn 1 và 2.
 - [x] E2E: undo về đầu ván; đổi chế độ rút giữa ván
 - [x] E2E: không cuộn ngang ở 320 / 375 / 768 / 1440; vùng chạm ≥ 44px
 - [x] E2E: console sạch; không request mạng; `localStorage` trống (NFR-REL-04, NFR-DATA-01)
-- [x] `yarn typecheck`, `yarn lint`, `yarn test`, `yarn build` đều xanh
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build` đều xanh
 - [x] `README.md` với `## Features`
 - [x] Cập nhật `scope.md` FR-01 → FR-12 sang `xong`, cập nhật `backlog.md` §Đang làm

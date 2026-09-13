@@ -17,7 +17,7 @@ Theo cách của minesweeper. Ba workflow tách bạch — `ci.yml` (mọi PR v�
 - `scripts/next-version.sh` quyết định tag kế tiếp từ tiền tố Conventional Commit kể từ tag trước, có `--explain` để in lý do.
 - `scripts/release-notes.sh` dựng thân release note bằng cách gom **subject** của các commit theo tiền tố.
 
-Cả hai chạy được ở máy qua `yarn release:next` và `yarn release:notes`.
+Cả hai chạy được ở máy qua `pnpm release:next` và `pnpm release:notes`.
 
 Kèm theo, hai ngưỡng trong `nfr.md` chuyển từ "review bằng mắt" sang cổng chặn trong CI: `scripts/check-bundle-size.mjs` (NFR-PERF-05) và `scripts/check-audit.mjs` (NFR-SEC-05).
 

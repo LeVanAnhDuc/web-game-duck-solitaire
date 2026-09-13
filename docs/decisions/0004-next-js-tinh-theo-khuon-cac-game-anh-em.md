@@ -12,6 +12,8 @@ Dự án là một trang tĩnh không server, trần chi phí 0 đ. Thư mục `
 
 Theo khuôn của ba game gần nhất: Next.js 15 App Router với `output: 'export'`, React 19, TypeScript 5, Tailwind 3, `lucide-react` cho icon, Vitest + happy-dom cho test luật và component, Playwright cho E2E, Yarn classic. Không thêm thư viện state, không thêm thư viện animation, không thêm thư viện game.
 
+> **Superseded 13.09.2026** — the workspace moved to pnpm 10; see the `build(deps)` commit that converted this repo.
+
 ## 3. Phương án đã loại
 
 | Phương án | Vì sao loại |

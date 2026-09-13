@@ -18,7 +18,7 @@ Cổng chặn trong CI là **`actions/dependency-review-action`** với `fail-on
 
 Lỗ hổng mới công bố trên một dependency đã có từ trước thì không đi qua đường đó; nó đến dưới dạng **Dependabot alert** và PR sửa tự động, và PR đó lại chạy qua chính job trên. Cả alert lẫn automated security fixes đã được bật trên repo.
 
-Kèm theo, `scripts/check-audit.mjs` đọc danh sách alert đang mở qua `gh api repos/<repo>/dependabot/alerts?state=open` và đỏ khi có mức high trở lên. Đây là **lệnh chạy ở máy** (`yarn check:audit`), không phải bước CI: `GITHUB_TOKEN` **không** đọc được Dependabot alert — trả 403 "Resource not accessible by integration" — nên đưa nó vào workflow thì phải phát sinh thêm một personal access token làm secret. Không query được thì script đỏ, không im lặng cho qua.
+Kèm theo, `scripts/check-audit.mjs` đọc danh sách alert đang mở qua `gh api repos/<repo>/dependabot/alerts?state=open` và đỏ khi có mức high trở lên. Đây là **lệnh chạy ở máy** (`pnpm check:audit`), không phải bước CI: `GITHUB_TOKEN` **không** đọc được Dependabot alert — trả 403 "Resource not accessible by integration" — nên đưa nó vào workflow thì phải phát sinh thêm một personal access token làm secret. Không query được thì script đỏ, không im lặng cho qua.
 
 ## 3. Phương án đã loại
 
@@ -41,7 +41,7 @@ Kèm theo, `scripts/check-audit.mjs` đọc danh sách alert đang mở qua `gh 
 
 **Mất / phải chấp nhận:**
 - Cổng phụ thuộc hoàn toàn vào GitHub: cần dependency graph và Dependabot alert bật, và cần `gh` cho lệnh chạy ở máy. Rời khỏi GitHub là phải làm lại bước này từ đầu.
-- `yarn check:audit` không chạy trong CI, nên nó chỉ hữu ích khi có người gọi. Cổng thật là job ở PR.
+- `pnpm check:audit` không chạy trong CI, nên nó chỉ hữu ích khi có người gọi. Cổng thật là job ở PR.
 - Đẩy thẳng lên `main` không qua PR thì không có cổng nào chặn dependency mới. Dự án này làm việc qua PR (ADR-0007 §1 nói cả chuyện merge ở máy — nếu quay lại lối đó thì khoảng trống này mở ra).
 - Hai cơ chế thay vì một. Chấp nhận vì chúng che hai khoảng trống khác nhau, không phải hai bản của cùng một việc.
 - `web-game-minesweeper` vẫn đang có một cổng audit báo xanh giả. Nằm ngoài phạm vi dự án này; ghi lại ở đây để lần sau ai đọc còn biết.

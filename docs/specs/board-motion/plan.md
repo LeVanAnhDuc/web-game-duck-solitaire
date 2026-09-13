@@ -26,7 +26,7 @@ chạy được cho tới khi `BoardLayer` xong. Nên giai đoạn 0 và 1 phả
 - [x] `PileSlot` test: `aria-owns` đúng id, viền khi rỗng, nháy khi bị từ chối
 - [x] `BoardLayer` + test: map placements ra `CardView`, nâng `z` cho lá đổi chồng rồi trả về
 - [x] `GameBoard` bày hai lớp; `sourceAt` và các handler đọc từ `placements` thay vì từ `cardsOf` + index của pile
-- [x] `yarn typecheck` + `yarn test` xanh, `yarn dev` chơi được bằng chạm và kéo
+- [x] `pnpm typecheck` + `pnpm test` xanh, `pnpm dev` chơi được bằng chạm và kéo
 
 ## Giai đoạn 2 · Một chạm, hai chạm
 
@@ -53,7 +53,7 @@ chạy được cho tới khi `BoardLayer` xong. Nên giai đoạn 0 và 1 phả
 - [x] `win.spec.ts` phát lại bằng **kéo thả** — bắt buộc vì một chạm làm lệch kịch bản; trả nốt món nợ E2E kéo thả trong `backlog.md`
 - [x] E2E mới: một chạm đưa Át lên foundation; một chạm lên lá không có chỗ thì chỉ chọn; hai chạm sang tableau; cú chạm ngay sau một nước đi-bằng-một-chạm không sinh nước thứ hai
 - [x] `motion.spec.ts` mới, và cả bộ E2E chạy ở chế độ tắt hiệu ứng qua `e2e/fixtures.ts`
-- [x] `yarn typecheck` · `yarn lint` · `yarn test` · `yarn build` · `yarn check:bundle` · `yarn test:e2e` xanh
+- [x] `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm build` · `pnpm check:bundle` · `pnpm test:e2e` xanh
 - [x] Xem app thật ở 320/375/768/1440, có ảnh chụp
 
 ## Giai đoạn 5 · Tài liệu và merge
