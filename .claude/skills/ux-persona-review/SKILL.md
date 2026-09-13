@@ -9,8 +9,8 @@ description: Use when you want to know how a real stranger experiences Duck Soli
 
 - Thư mục: `D:/Learn/web-app-ecosystem/web-game/web-game-solitaire`
 - Port: **3000** (dev server) · 4183 (bản export tĩnh mà E2E dùng)
-- Bật app: `yarn dev` → http://localhost:3000/
-  Muốn test đúng thứ GitHub Pages phục vụ thì `yarn build` rồi `node scripts/serve.mjs 4183 out`.
+- Bật app: `pnpm dev` → http://localhost:3000/
+  Muốn test đúng thứ GitHub Pages phục vụ thì `pnpm build` rồi `node scripts/serve.mjs 4183 out`.
 - Dấu hiệu nhận biết đúng app:
   - tab có tiêu đề **`Duck Solitaire`**, `<html lang="vi">`
   - nền bàn xanh lá đậm (`#0b3d2e`), **7 cột bài** dưới **4 chồng đích** và một chồng rút

@@ -22,27 +22,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
+          cache: pnpm
 
-      - run: yarn install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       # Lint chay o day chu khong chi trong ci.yml: `build` bat duoc loi kieu
       # nhung khong bat vi pham lint, va mot push thang vao `main` khong di
       # qua pull request.
-      - run: yarn lint
+      - run: pnpm lint
 
       # The tests run again here rather than trusting the CI workflow: these two are
       # independent, and a deploy that assumes a green run it cannot see is a deploy
       # that will eventually ship a red one.
-      - run: yarn test
+      - run: pnpm test
 
-      - run: yarn build
+      - run: pnpm build
         env:
           # Only set here. It switches on basePath for the /web-game-duck-solitaire
-          # sub-path; `yarn dev` and a local build stay at the root.
+          # sub-path; `pnpm dev` and a local build stay at the root.
           GITHUB_PAGES: 'true'
 
       - uses: actions/configure-pages@v5

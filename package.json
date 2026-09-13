@@ -2,13 +2,14 @@
   "name": "web-game-duck-solitaire",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "check:audit": "node scripts/check-audit.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs out",
-    "release:next": "npx --yes git-cliff@2.13.1 --bumped-version",
-    "release:notes": "npx --yes git-cliff@2.13.1 --unreleased --tag $(npx --yes git-cliff@2.13.1 --bumped-version) --strip all",
+    "release:next": "pnpm dlx git-cliff@2.13.1 --bumped-version",
+    "release:notes": "pnpm dlx git-cliff@2.13.1 --unreleased --tag $(pnpm dlx git-cliff@2.13.1 --bumped-version) --strip all",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -48,7 +49,12 @@
     "vite": "^8.0.0",
     "vitest": "^4.0.0"
   },
-  "resolutions": {
-    "postcss": "^8.5.18"
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.18"
+    },
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
   }
 }

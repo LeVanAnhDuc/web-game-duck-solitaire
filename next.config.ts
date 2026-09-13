@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 /**
  * GitHub Pages serves the site from /<repo-name>; running locally it sits at the
- * root. GITHUB_PAGES is set only by the deploy workflow, so `yarn dev` and a local
- * `yarn build` keep serving from the root.
+ * root. GITHUB_PAGES is set only by the deploy workflow, so `pnpm dev` and a local
+ * `pnpm build` keep serving from the root.
  */
 const isGithubPages = process.env.GITHUB_PAGES === "true";
 const basePath = "/web-game-duck-solitaire";

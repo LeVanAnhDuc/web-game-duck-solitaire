@@ -23,24 +23,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
+          cache: pnpm
 
-      - run: yarn install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: yarn lint
+        run: pnpm lint
 
       - name: Typecheck
-        run: yarn typecheck
+        run: pnpm typecheck
 
       # 208 of them, and three carry the weight: the replay property test, the
       # frozen-state test that catches a mutation in applyMove, and purity.test.ts
       # reading the source to prove src/game never reaches for the browser.
       - name: Unit and component tests
-        run: yarn test
+        run: pnpm test
 
   e2e:
     name: Build and end-to-end
@@ -48,29 +50,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
+          cache: pnpm
 
-      - run: yarn install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Build the static export
-        run: yarn build
+        run: pnpm build
 
       # NFR-PERF-05, measured from the exported HTML rather than from the build
       # table, so it breaks on a regression and not on a Next.js release.
       - name: First-load JS budget
-        run: yarn check:bundle
+        run: pnpm check:bundle
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       # Runs against out/ through scripts/serve.mjs - the thing GitHub Pages will
       # serve, at 320 / 375 / 768 / 1440. The 1440 project additionally replays a
       # solved deal all the way to the win screen, which takes about a minute.
       - name: End-to-end tests
-        run: yarn test:e2e
+        run: pnpm test:e2e
 
       - if: failure()
         uses: actions/upload-artifact@v4
@@ -79,10 +83,12 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  # NFR-SEC-05 in CI. It is here rather than as a `yarn audit` step because yarn 1's
-  # audit endpoint no longer answers, and GITHUB_TOKEN cannot read Dependabot alerts
-  # (403 "Resource not accessible by integration") - so neither of the two obvious
-  # in-job checks works without a personal access token. See ADR-0008.
+  # NFR-SEC-05 in CI. It is here rather than as a `check:audit` step because
+  # GITHUB_TOKEN cannot read Dependabot alerts (403 "Resource not accessible by
+  # integration"), so that script cannot run in a job without a personal access
+  # token. See ADR-0008 - written when the alternative, yarn 1's audit endpoint, had
+  # stopped answering entirely. `pnpm audit` does answer, which reopens that choice,
+  # but reopening it is a decision of its own and not part of a toolchain swap.
   #
   # This reviews the dependency diff of the pull request, which is where a vulnerable
   # dependency actually enters the project. A vulnerability newly disclosed against a

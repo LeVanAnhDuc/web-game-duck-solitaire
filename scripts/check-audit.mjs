@@ -3,20 +3,24 @@ import { execFileSync } from "node:child_process";
 /**
  * Enforces NFR-SEC-05 - "no dependency vulnerability at high or above".
  *
- * It asks GitHub for this repository's Dependabot alerts rather than running
- * `yarn audit`. Yarn 1's audit endpoint
- * (registry.yarnpkg.com/-/npm/v1/security/audits) times out on every call now, both
- * on a laptop and on a GitHub runner - and the version of this script ported from
- * web-game-minesweeper printed "no high or critical advisory (0 total)" and exited 0
- * when that happened. Its audit step has never actually run. A security gate that
- * goes green when it never ran is worse than no gate at all, so this one asks a
- * source that answers, and fails loudly when it cannot.
+ * It asks GitHub for this repository's Dependabot alerts rather than running the
+ * package manager's own audit. That choice was forced by yarn 1, whose audit endpoint
+ * (registry.yarnpkg.com/-/npm/v1/security/audits) timed out on every call - and the
+ * version of this script ported from web-game-minesweeper printed "no high or critical
+ * advisory (0 total)" and exited 0 when that happened. A security gate that goes green
+ * when it never ran is worse than no gate at all, so this one asks a source that
+ * answers, and fails loudly when it cannot. That refusal to report an unjustified pass
+ * is the point of the file, and it is why the script survives the move to pnpm intact.
  *
- * GitHub builds the alert list from the committed yarn.lock, so what is checked is
- * what is installed - closer to the truth than an npm-side resolution of
- * package.json would be.
+ * The move does retire the ORIGINAL reason, though: `pnpm audit` queries the npm
+ * advisory endpoint, which does answer, so ADR-0008's stated revisit condition is now
+ * met. It is deliberately not taken here. The alert list is built by GitHub from the
+ * committed pnpm-lock.yaml, so it describes what is installed; it is the same data the
+ * automated fix PRs act on; and the real CI gate is dependency-review-action either
+ * way. Swapping the source is a decision for its own ADR, not a side effect of
+ * changing package managers.
  *
- *   yarn check:audit
+ *   pnpm check:audit
  *
  * Locally it uses your `gh` login. In CI it uses GITHUB_TOKEN, which needs
  * `security-events: read` on the job.

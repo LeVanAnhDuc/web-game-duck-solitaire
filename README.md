@@ -49,8 +49,8 @@ choice of target.
 ## Getting started
 
 ```bash
-yarn install
-yarn dev            # http://localhost:3000
+pnpm install
+pnpm dev            # http://localhost:3000
 ```
 
 There is nothing to configure — the game reads no required environment variables. See
@@ -60,19 +60,19 @@ There is nothing to configure — the game reads no required environment variabl
 
 | Command | Does |
 | --- | --- |
-| `yarn dev` | Dev server |
-| `yarn build` | Static export into `out/` |
-| `yarn typecheck` | `tsc --noEmit` |
-| `yarn lint` | ESLint, including the guard that keeps `src/game/` framework-free |
-| `yarn test` | Vitest — rules and components |
-| `yarn test:e2e` | Playwright against the built static export, at four viewports |
-| `yarn check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
-| `yarn check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
-| `yarn release:next` | Which tag the next release would get, and why |
-| `yarn release:notes v1.1.0` | What that release's notes would say |
-| `yarn format` | Prettier |
+| `pnpm dev` | Dev server |
+| `pnpm build` | Static export into `out/` |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
+| `pnpm test` | Vitest — rules and components |
+| `pnpm test:e2e` | Playwright against the built static export, at four viewports |
+| `pnpm check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
+| `pnpm check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
+| `pnpm release:next` | Which tag the next release would get, and why |
+| `pnpm release:notes v1.1.0` | What that release's notes would say |
+| `pnpm format` | Prettier |
 
-`yarn test:e2e` and `yarn check:bundle` need `yarn build` to have run first: both look at
+`pnpm test:e2e` and `pnpm check:bundle` need `pnpm build` to have run first: both look at
 the exported site, because that is what GitHub Pages serves.
 
 ## How it is put together
@@ -110,8 +110,8 @@ locally — a release process you can only exercise by pushing to `main` is one 
 exercises:
 
 ```bash
-yarn release:next            # which tag the next release would get, and why
-yarn release:notes v1.1.0    # what its notes would say
+pnpm release:next            # which tag the next release would get, and why
+pnpm release:notes v1.1.0    # what its notes would say
 ```
 
 **How the version is decided**, against the previous `v*` tag:

@@ -7,7 +7,7 @@
  * for one and writes it to e2e/fixtures/winnable.json, which is committed - the search
  * is slow and nothing about it needs to run in CI.
  *
- *   npx vite-node -c vitest.config.mts scripts/find-winnable.ts -- [firstSeed] [seedCount]
+ *   pnpm dlx vite-node -c vitest.config.mts scripts/find-winnable.ts -- [firstSeed] [seedCount]
  *
  * The result it writes is the FULL winning line. e2e/fixtures/winnable.json holds only
  * the prefix up to the first fully-face-up position, because the rest is what the

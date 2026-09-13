@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 /**
  * The rules layer is only testable without a browser for as long as it stays free of
  * one, and the day it stops being free is the day this becomes expensive to undo
- * (invariants #1 and #3). Lint says the same thing, but lint is not run by `yarn test`
+ * (invariants #1 and #3). Lint says the same thing, but lint is not run by `pnpm test`
  * and can be disabled inline - this cannot.
  *
  * Reading the source as text is the point: it catches an import added anywhere in the
