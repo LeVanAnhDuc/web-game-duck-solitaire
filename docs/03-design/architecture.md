@@ -78,5 +78,5 @@ Undo đi ngược đúng con đường đó, nhưng không có bước lùi nào
 | Màn mừng thắng | Canvas 2D phủ lên | ADR-0003 |
 | Test luật | Vitest + happy-dom | ADR-0004 |
 | Test đầu-cuối | Playwright | ADR-0004 |
-| Quản lý gói | Yarn classic | ADR-0004 |
+| Quản lý gói | pnpm 10 | ADR-0004 (khuôn stack); chuyển từ Yarn classic sang pnpm theo quyết định chung của cả workspace |
 | Triển khai | GitHub Pages, file tĩnh | ADR-0004 |
