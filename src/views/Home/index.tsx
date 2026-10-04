@@ -22,6 +22,7 @@ import { useSelection, type DragSource } from "@/hooks/useSelection";
 import type { MoveIntent } from "@/hooks/moveIntent";
 import { pileHeight, placements, type CardPlacement } from "@/lib/layout";
 
+import { DUCKER_CONFIG } from "@/lib/auth/config";
 import { strings } from "@/lib/strings";
 import { BoardLayer } from "./mains/BoardLayer";
 import { CardView } from "./components/CardView";
@@ -34,7 +35,6 @@ import { WinOverlay } from "./components/WinOverlay";
 import { AutoCompleteRunner } from "./ghosts/AutoCompleteRunner";
 import { CelebrateWin } from "./ghosts/CelebrateWin";
 import { FocusActivePile } from "./ghosts/FocusActivePile";
-import { RestoreAuthUrl } from "./ghosts/RestoreAuthUrl";
 
 /**
  * The board: the only place that knows how the piles are arranged, how the keyboard
@@ -415,7 +415,6 @@ export function Home() {
         tự ba effect từng nằm trong file này — effect của con chạy trước effect của
         cha, theo đúng thứ tự con (R-04).
       */}
-      <RestoreAuthUrl />
       <AutoCompleteRunner
         running={autoRunning}
         state={game.state}
@@ -443,7 +442,7 @@ export function Home() {
       >
         <div className="flex flex-col">
           <span className="text-[15px] font-semibold text-fg">{strings.appTitle}</span>
-          <span className="text-[12px] text-muted">{strings.tagline}</span>
+          <span className="text-[12px] text-muted">{DUCKER_CONFIG ? strings.taglineWithSignIn : strings.tagline}</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col sm:items-end">

@@ -73,6 +73,7 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
     url.searchParams.set("code_challenge_method", "S256");
     window.location.assign(url.toString());
   } catch (error) {
+    clearPending(); // nothing will come back for an entry we wrote but never used
     starting = false;
     throw error;
   }
@@ -121,6 +122,12 @@ export function consumeCallback(): CallbackResult | null {
 
 let captured: CallbackResult | null = null;
 let didCapture = false;
+/** The address the capture left behind; null when the page had no callback. */
+let settledUrl: string | null = null;
+
+function currentUrl(): string {
+  return window.location.pathname + window.location.search + window.location.hash;
+}
 
 /** Runs once at module load in the browser, before any game code reads the URL. */
 export function captureCallback(): void {
@@ -134,25 +141,22 @@ export function captureCallback(): void {
       // a bad returnTo must never blank the game at load
     }
   }
+  if (captured) settledUrl = currentUrl();
 }
 
-let restored = false;
-
 /**
- * Next's router re-writes the address with the URL it saw when it started hydrating -
- * which still carries ?code&state - in an insertion effect, AFTER the module-load
- * capture above. Run once from a layout effect (after that, before useGame's passive
- * effect reads ?van) to put the cleaned address, and the game's own params, back.
+ * After hydration Next's app router writes the URL it saw when it started - still
+ * carrying ?code&state - back into history, undoing the cleanup above. A reload would
+ * then spend a dead code, and the game's own params (?van) could be lost. Called from a
+ * mount effect of the auth hook, once.
  */
-export function restoreCapturedUrl(): void {
-  if (restored || !captured) return;
-  restored = true;
+export function settleCallbackUrl(): void {
+  if (settledUrl === null) return;
+  const target = settledUrl;
+  settledUrl = null; // one-shot: a later remount must not rewrite the URL behind the router's back
+  if (target === currentUrl()) return;
   try {
-    window.history.replaceState(
-      window.history.state,
-      "",
-      captured.returnTo ? captured.returnTo : withoutCallbackParams(),
-    );
+    window.history.replaceState(window.history.state, "", target);
   } catch {
     // the address is cosmetic; never let it break the game
   }
@@ -166,7 +170,7 @@ export function capturedCallback(): CallbackResult | null {
 export function resetCaptureForTests(): void {
   captured = null;
   didCapture = false;
-  restored = false;
+  settledUrl = null;
 }
 
 /** Tests only. */

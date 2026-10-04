@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   captureCallback,
-  restoreCapturedUrl,
+  settleCallbackUrl,
   consumeCallback,
   resetCaptureForTests,
   resetLoginForTests,
@@ -101,7 +101,7 @@ describe("captureCallback", () => {
   });
 });
 
-describe("restoreCapturedUrl", () => {
+describe("settleCallbackUrl", () => {
   beforeEach(() => {
     sessionStorage.clear();
     resetCaptureForTests();
@@ -115,25 +115,36 @@ describe("restoreCapturedUrl", () => {
     window.history.replaceState(null, "", "/?code=c1&state=s1");
     captureCallback();
     window.history.replaceState(null, "", "/?code=c1&state=s1"); // the router's rewrite
-    restoreCapturedUrl();
+    settleCallbackUrl();
     expect(window.location.search).toBe("?van=7");
-    window.history.replaceState(null, "", "/?van=9");
-    restoreCapturedUrl();
-    expect(window.location.search).toBe("?van=9");
+    // already clean: a second call leaves it alone
+    settleCallbackUrl();
+    expect(window.location.search).toBe("?van=7");
   });
 
   it("strips the OAuth params even when there is no returnTo", () => {
     window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
     captureCallback();
     window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
-    restoreCapturedUrl();
+    settleCallbackUrl();
     expect(window.location.search).toBe("?van=3");
+  });
+
+  it("is one-shot: a second call is a no-op even if the URL changed meanwhile", () => {
+    window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
+    captureCallback();
+    window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
+    settleCallbackUrl();
+    expect(window.location.search).toBe("?van=3");
+    window.history.replaceState(null, "", "/?van=8");
+    settleCallbackUrl();
+    expect(window.location.search).toBe("?van=8");
   });
 
   it("does nothing when no callback was captured", () => {
     window.history.replaceState(null, "", "/?van=3");
     captureCallback();
-    restoreCapturedUrl();
+    settleCallbackUrl();
     expect(window.location.search).toBe("?van=3");
   });
 });
@@ -186,6 +197,16 @@ describe("startLogin", () => {
     await startLogin(config);
     expect(assign).not.toHaveBeenCalled();
     vi.stubGlobal("sessionStorage", real);
+    await startLogin(config);
+    expect(assign).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes the pending entry and stays retryable when the challenge cannot be computed", async () => {
+    const digest = vi.spyOn(crypto.subtle, "digest").mockRejectedValueOnce(new Error("boom"));
+    await expect(startLogin(config)).rejects.toThrow("boom");
+    expect(sessionStorage.getItem("ducker.pkce")).toBeNull();
+    expect(assign).not.toHaveBeenCalled();
+    digest.mockRestore();
     await startLogin(config);
     expect(assign).toHaveBeenCalledTimes(1);
   });

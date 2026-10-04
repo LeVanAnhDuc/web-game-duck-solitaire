@@ -68,6 +68,13 @@ export const strings = {
    */
   tagline: "Không tài khoản · không quảng cáo · không lưu gì",
 
+  /**
+   * Shown instead of `tagline` only when the optional Ducker ID sign-in is on, so the
+   * line does not say "no account" right beside a sign-in button. The game itself still
+   * has no account of its own - ADR-0012. The deployed build never shows this.
+   */
+  taglineWithSignIn: "Không tài khoản riêng · không quảng cáo · không lưu gì",
+
   toolbar: {
     undo: "Hoàn lại",
     restart: "Chơi lại",
