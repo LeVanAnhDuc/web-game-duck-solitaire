@@ -403,6 +403,13 @@ export function Home() {
     justifyContent: "center",
   } as const;
 
+  const seedBlock = (
+    <div className="flex flex-col sm:items-end">
+      <span className="font-num text-[15px] text-fg">{strings.seed.label(game.seed)}</span>
+      <span className="text-[12px] text-muted">{strings.seed.hint}</span>
+    </div>
+  );
+
   return (
     <main
       className="flex min-h-screen flex-col"
@@ -444,14 +451,15 @@ export function Home() {
           <span className="text-[15px] font-semibold text-fg">{strings.appTitle}</span>
           <span className="text-[12px] text-muted">{DUCKER_CONFIG ? strings.taglineWithSignIn : strings.tagline}</span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col sm:items-end">
-            <span className="font-num text-[15px] text-fg">{strings.seed.label(game.seed)}</span>
-            <span className="text-[12px] text-muted">{strings.seed.hint}</span>
+        {/* The wrapper exists only when sign-in is on, so the deployed DOM is unchanged. */}
+        {DUCKER_CONFIG ? (
+          <div className="flex items-center gap-3">
+            {seedBlock}
+            <AccountButton />
           </div>
-          {/* Optional Ducker ID sign-in: renders nothing unless the flag is on. */}
-          <AccountButton />
-        </div>
+        ) : (
+          seedBlock
+        )}
       </header>
 
       {/* Two channels for one message, because neither alone reaches everyone.

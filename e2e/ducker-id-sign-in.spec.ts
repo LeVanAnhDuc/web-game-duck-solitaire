@@ -201,7 +201,14 @@ test.describe("flag on, fake issuer", () => {
     expect(overflow).toBeLessThanOrEqual(0);
 
     await signInButton(page).click();
+    await expect(accountButton(page)).toBeVisible();
+    const headerBox = () => page.locator("header").boundingBox();
+    const before = await headerBox();
     await accountButton(page).click();
+    await expect(page.getByRole("menu")).toBeVisible();
+    expect(await headerBox()).toEqual(before);
+    const position = await page.getByRole("menu").evaluate((el) => getComputedStyle(el).position);
+    expect(position).toBe("absolute");
     const menu = await page.getByRole("menu").boundingBox();
     const viewport = page.viewportSize()!;
     expect(menu!.x).toBeGreaterThanOrEqual(0);

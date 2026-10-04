@@ -29,6 +29,10 @@ const ALLOWED: Record<string, string[]> = {
   localStorage: [],
   "document.cookie": [],
   indexedDB: [],
+  "new Image": [],
+  XMLHttpRequest: [],
+  WebSocket: [],
+  sendBeacon: [],
 };
 
 describe("browser storage and network stay in the two Ducker ID auth files", () => {

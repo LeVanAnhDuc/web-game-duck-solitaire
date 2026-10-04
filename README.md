@@ -72,7 +72,7 @@ To try the optional Ducker ID sign-in locally, copy `.env.example` to `.env`, se
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
 | `pnpm test` | Vitest — rules and components |
-| `pnpm test:e2e` | Playwright against the built static export, at four viewports |
+| `pnpm test:e2e` | Playwright against the built static export, at four viewports. Needs `pnpm build` **and** `pnpm build:e2e-auth` first (the sign-in spec uses the flag-on export) |
 | `pnpm build:e2e-auth` | Flag-on build into `out-auth/` (fake issuer) for the sign-in e2e spec |
 | `pnpm check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
 | `pnpm check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |

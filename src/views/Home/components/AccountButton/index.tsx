@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink, LogIn, LogOut } from "lucide-react";
 import { useAccountMenu } from "@/hooks/useAccountMenu";
 import { useDuckerAuth } from "@/hooks/useDuckerAuth";
 import { initialOf } from "@/lib/auth/initials";
+import type { DuckerProfile } from "@/lib/auth/types";
 import { FLIGHT_Z } from "@/lib/layout";
 import { strings } from "@/lib/strings";
 
@@ -14,8 +15,35 @@ import { strings } from "@/lib/strings";
  * two-layer focus ring from MASTER.md, no transitions of its own (reduced motion).
  */
 
-const CONTROL = "focus-ring inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded px-3 text-[14px] font-medium bg-toolbar text-fg";
+const CONTROL = "focus-ring inline-flex min-h-[44px] min-w-[44px] flex-none items-center justify-center gap-2 whitespace-nowrap rounded px-3 text-[14px] font-medium bg-toolbar text-fg";
 const ITEM = "focus-ring flex min-h-[44px] w-full items-center gap-2 rounded px-3 text-left text-[14px] font-medium text-fg";
+
+/** Picture from the issuer, which may be another host: no referrer, initial on failure. */
+function Avatar({ profile }: { profile: DuckerProfile }) {
+  const [failed, setFailed] = useState(false);
+  if (profile.picture && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- avatar from the issuer, static export has no image optimiser
+      <img
+        src={profile.picture}
+        alt=""
+        width={32}
+        height={32}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="rounded-full"
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-ring text-[14px] font-semibold text-toolbar"
+    >
+      {initialOf(profile)}
+    </span>
+  );
+}
 
 export function AccountButton() {
   const auth = useDuckerAuth();
@@ -36,18 +64,22 @@ export function AccountButton() {
 
   if (auth.status !== "signed-in" || !auth.profile) {
     const loading = auth.status === "loading";
+    const inert = loading || auth.status === "idle";
     return (
       <div onKeyDown={menu.onKeyDown}>
         <button
           ref={signInRef}
           type="button"
           onClick={auth.signIn}
-          disabled={loading}
+          disabled={inert}
           aria-busy={loading}
-          className={`${CONTROL} ${loading ? "opacity-50" : ""}`}
+          className={`${CONTROL} ${inert ? "opacity-50" : ""}`}
         >
           <LogIn aria-hidden="true" size={18} />
-          <span>{loading ? strings.account.signingIn : strings.account.signIn}</span>
+          {/* Icon-only below sm so idle / loading / signed-out never wrap the header at 320-375; the name stays. */}
+          <span className="sr-only sm:not-sr-only">
+            {loading ? strings.account.signingIn : strings.account.signIn}
+          </span>
         </button>
       </div>
     );
@@ -68,17 +100,7 @@ export function AccountButton() {
         aria-label={strings.account.menuLabel}
         className={CONTROL}
       >
-        {profile.picture ? (
-          // eslint-disable-next-line @next/next/no-img-element -- avatar from the issuer, static export has no image optimiser
-          <img src={profile.picture} alt="" width={32} height={32} className="rounded-full" />
-        ) : (
-          <span
-            aria-hidden="true"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-ring text-[14px] font-semibold text-toolbar"
-          >
-            {initialOf(profile)}
-          </span>
-        )}
+        <Avatar profile={profile} />
       </button>
       {menu.open && (
         <div
@@ -89,7 +111,7 @@ export function AccountButton() {
           style={{ zIndex: FLIGHT_Z + 1 }}
           className="absolute right-0 top-full mt-2 flex w-[min(280px,calc(100vw-16px))] flex-col gap-1 rounded border border-muted bg-toolbar p-2 text-fg"
         >
-          <div className="px-3 py-2">
+          <div role="none" className="px-3 py-2">
             <p className="break-words text-[14px] font-semibold">{title}</p>
             {showEmail && (
               <p data-account="email" className="break-words text-[12px] text-muted">
