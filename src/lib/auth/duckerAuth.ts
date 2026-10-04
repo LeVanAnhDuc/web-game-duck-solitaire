@@ -80,7 +80,12 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
 
 /** Only a same-origin path may be fed to replaceState ("//evil" would throw at load). */
 function isSafeReturnTo(value: unknown): value is string {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//");
+  return (
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("\\")
+  );
 }
 
 /**
@@ -88,6 +93,13 @@ function isSafeReturnTo(value: unknown): value is string {
  * own ?van survives. A code is single-use, so leaving it in the address would make a
  * reload try to spend it again.
  */
+function withoutCallbackParams(): string {
+  const params = new URLSearchParams(window.location.search);
+  for (const key of CALLBACK_PARAMS) params.delete(key);
+  const query = params.toString();
+  return window.location.pathname + (query ? `?${query}` : "") + window.location.hash;
+}
+
 export function consumeCallback(): CallbackResult | null {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -97,13 +109,7 @@ export function consumeCallback(): CallbackResult | null {
 
   const pending = readPending();
   clearPending();
-  for (const key of CALLBACK_PARAMS) params.delete(key);
-  const query = params.toString();
-  window.history.replaceState(
-    window.history.state,
-    "",
-    window.location.pathname + (query ? `?${query}` : "") + window.location.hash,
-  );
+  window.history.replaceState(window.history.state, "", withoutCallbackParams());
 
   // returnTo is restored on success AND on an IdP error: redirect_uri is the bare app
   // root, so without it a cancelled sign-in would drop ?van. Not on state_mismatch.
@@ -130,6 +136,28 @@ export function captureCallback(): void {
   }
 }
 
+let restored = false;
+
+/**
+ * Next's router re-writes the address with the URL it saw when it started hydrating -
+ * which still carries ?code&state - in an insertion effect, AFTER the module-load
+ * capture above. Run once from a layout effect (after that, before useGame's passive
+ * effect reads ?van) to put the cleaned address, and the game's own params, back.
+ */
+export function restoreCapturedUrl(): void {
+  if (restored || !captured) return;
+  restored = true;
+  try {
+    window.history.replaceState(
+      window.history.state,
+      "",
+      captured.returnTo ? captured.returnTo : withoutCallbackParams(),
+    );
+  } catch {
+    // the address is cosmetic; never let it break the game
+  }
+}
+
 export function capturedCallback(): CallbackResult | null {
   return captured;
 }
@@ -138,6 +166,7 @@ export function capturedCallback(): CallbackResult | null {
 export function resetCaptureForTests(): void {
   captured = null;
   didCapture = false;
+  restored = false;
 }
 
 /** Tests only. */

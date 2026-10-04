@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   captureCallback,
+  restoreCapturedUrl,
   consumeCallback,
   resetCaptureForTests,
   resetLoginForTests,
@@ -69,6 +70,17 @@ describe("consumeCallback", () => {
   });
 });
 
+describe("returnTo with a backslash", () => {
+  it("is dropped", () => {
+    sessionStorage.setItem(
+      "ducker.pkce",
+      JSON.stringify({ state: "s1", verifier: "v1", returnTo: "/\\evil" }),
+    );
+    window.history.replaceState(null, "", "/?code=c1&state=s1");
+    expect(consumeCallback()).toEqual({ code: "c1", verifier: "v1", returnTo: undefined });
+  });
+});
+
 describe("captureCallback", () => {
   beforeEach(() => {
     sessionStorage.clear();
@@ -86,6 +98,43 @@ describe("captureCallback", () => {
     window.history.replaceState(null, "", "/?van=9");
     captureCallback();
     expect(window.location.search).toBe("?van=9");
+  });
+});
+
+describe("restoreCapturedUrl", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    resetCaptureForTests();
+  });
+
+  it("puts returnTo back once after the router re-wrote the stale callback URL", () => {
+    sessionStorage.setItem(
+      "ducker.pkce",
+      JSON.stringify({ state: "s1", verifier: "v1", returnTo: "/?van=7" }),
+    );
+    window.history.replaceState(null, "", "/?code=c1&state=s1");
+    captureCallback();
+    window.history.replaceState(null, "", "/?code=c1&state=s1"); // the router's rewrite
+    restoreCapturedUrl();
+    expect(window.location.search).toBe("?van=7");
+    window.history.replaceState(null, "", "/?van=9");
+    restoreCapturedUrl();
+    expect(window.location.search).toBe("?van=9");
+  });
+
+  it("strips the OAuth params even when there is no returnTo", () => {
+    window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
+    captureCallback();
+    window.history.replaceState(null, "", "/?code=c1&state=s1&van=3");
+    restoreCapturedUrl();
+    expect(window.location.search).toBe("?van=3");
+  });
+
+  it("does nothing when no callback was captured", () => {
+    window.history.replaceState(null, "", "/?van=3");
+    captureCallback();
+    restoreCapturedUrl();
+    expect(window.location.search).toBe("?van=3");
   });
 });
 

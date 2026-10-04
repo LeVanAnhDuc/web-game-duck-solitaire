@@ -1,5 +1,8 @@
 "use client";
 
+// Must stay the FIRST import: it captures and cleans the Ducker ID callback from the URL
+// at module load, before useGame / seedUrl read ?van (ADR-0012). Inert when the flag is off.
+import "@/lib/auth/duckerSession";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { Card, CardId } from "@/game/cards";
 import { findAutoTarget, findFoundationTarget } from "@/game/auto";
@@ -24,12 +27,14 @@ import { BoardLayer } from "./mains/BoardLayer";
 import { CardView } from "./components/CardView";
 import { PileSlot } from "./components/PileSlot";
 import { Toolbar } from "./mains/Toolbar";
+import { AccountButton } from "./components/AccountButton";
 import { WinOverlay } from "./components/WinOverlay";
 
 // ghosts
 import { AutoCompleteRunner } from "./ghosts/AutoCompleteRunner";
 import { CelebrateWin } from "./ghosts/CelebrateWin";
 import { FocusActivePile } from "./ghosts/FocusActivePile";
+import { RestoreAuthUrl } from "./ghosts/RestoreAuthUrl";
 
 /**
  * The board: the only place that knows how the piles are arranged, how the keyboard
@@ -410,6 +415,7 @@ export function Home() {
         tự ba effect từng nằm trong file này — effect của con chạy trước effect của
         cha, theo đúng thứ tự con (R-04).
       */}
+      <RestoreAuthUrl />
       <AutoCompleteRunner
         running={autoRunning}
         state={game.state}
@@ -439,9 +445,13 @@ export function Home() {
           <span className="text-[15px] font-semibold text-fg">{strings.appTitle}</span>
           <span className="text-[12px] text-muted">{strings.tagline}</span>
         </div>
-        <div className="flex flex-col sm:items-end">
-          <span className="font-num text-[15px] text-fg">{strings.seed.label(game.seed)}</span>
-          <span className="text-[12px] text-muted">{strings.seed.hint}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:items-end">
+            <span className="font-num text-[15px] text-fg">{strings.seed.label(game.seed)}</span>
+            <span className="text-[12px] text-muted">{strings.seed.hint}</span>
+          </div>
+          {/* Optional Ducker ID sign-in: renders nothing unless the flag is on. */}
+          <AccountButton />
         </div>
       </header>
 

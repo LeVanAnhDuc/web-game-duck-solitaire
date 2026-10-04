@@ -104,6 +104,19 @@ export const strings = {
     hint: "Cùng số hiệu ván luôn cho cùng thế bài",
   },
 
+  /**
+   * Optional Ducker ID sign-in (ADR-0012). Only rendered when the feature flag is on,
+   * so none of this reaches a player of the deployed build. The e2e suite selects by
+   * these labels.
+   */
+  account: {
+    signIn: "Đăng nhập",
+    signingIn: "Đang đăng nhập…",
+    menuLabel: "Tài khoản Ducker ID",
+    openProfile: "Mở hồ sơ Ducker ID",
+    signOut: "Đăng xuất",
+  },
+
   win: {
     title: "Thắng rồi!",
     body: (moves: number) => `Xong ván trong ${moves} nước đi.`,
