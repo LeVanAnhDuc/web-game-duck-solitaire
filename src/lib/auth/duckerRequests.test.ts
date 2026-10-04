@@ -46,6 +46,17 @@ describe("duckerRequests", () => {
     expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("rejects a malformed userinfo and accepts a minimal one", async () => {
+    fetchMock.mockResolvedValue(json(null));
+    await expect(fetchProfile(config, "t")).rejects.toThrow("userinfo_invalid");
+    fetchMock.mockResolvedValue(json({ sub: "u1", name: 42 }));
+    await expect(fetchProfile(config, "t")).rejects.toThrow("userinfo_invalid");
+    fetchMock.mockResolvedValue(json({ sub: "" }));
+    await expect(fetchProfile(config, "t")).rejects.toThrow("userinfo_invalid");
+    fetchMock.mockResolvedValue(json({ sub: "u1" }));
+    await expect(fetchProfile(config, "t")).resolves.toEqual({ sub: "u1" });
+  });
+
   it("throws on a non-ok response", async () => {
     fetchMock.mockResolvedValue(json({}, 400));
     await expect(exchangeCode(config, "c", "v")).rejects.toThrow("token_exchange_failed_400");
