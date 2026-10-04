@@ -103,3 +103,22 @@
 - Bấm **Ván mới** giữa chuỗi bài tự bay lên → chuỗi phải dừng trước khi ván mới được chia.
 
 **Chức năng liên quan:** FR-09 · FR-10
+
+---
+
+## US-06 · Đăng nhập Ducker ID (tuỳ chọn, chỉ khi cờ bật)
+
+**Bối cảnh:** Người chơi muốn game biết mình là ai. Luồng này **không có trên bản deploy** — cờ tính năng tắt (ADR-0012).
+
+**Các bước:**
+1. Chạm **Đăng nhập** ở đầu trang, cạnh số hiệu ván.
+2. Đăng nhập (hoặc đã đăng nhập sẵn) ở Ducker ID, rồi được đưa về đúng ván đang chơi.
+3. Chạm avatar để mở menu: tên, email, **Mở hồ sơ Ducker ID**, **Đăng xuất**.
+
+**Kết quả mong đợi:** Tên hiện trong menu; địa chỉ sạch (không `code`, `state`) và vẫn giữ `?van=`. Ván, thế bài, nước đi không đổi.
+
+**Điều gì có thể sai:**
+- Từ chối ở Ducker ID, state sai, issuer treo → về lại trạng thái chưa đăng nhập, im lặng, ván nguyên vẹn.
+- Tải lại trang → chưa đăng nhập (hồ sơ chỉ nằm trong bộ nhớ).
+
+**Chức năng liên quan:** FR-15

@@ -21,6 +21,7 @@ static page that runs on the player's machine.
   game deals out from the deck.
 - Finish the boring part in one press once every card is face up.
 - Unlimited undo, back to the first move of the deal.
+- Optional sign-in with Ducker ID (behind a feature flag, off in the deployed build); identity only, nothing is saved.
 - Deals are generated from a seed, so restarting replays the exact same game, and
   `?van=<number>` reopens one you liked — the page now says so, instead of leaving you
   to work it out.
@@ -54,7 +55,13 @@ pnpm dev            # http://localhost:3000
 ```
 
 There is nothing to configure — the game reads no required environment variables. See
-[`.env.example`](.env.example) for the one optional variable the deploy workflow sets.
+[`.env.example`](.env.example) for the optional ones: the deploy workflow's base path, and the
+Ducker ID sign-in flag.
+
+To try the optional Ducker ID sign-in locally, copy `.env.example` to `.env`, set
+`NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN=true` and `NEXT_PUBLIC_DUCKER_CLIENT_ID`, register
+`http://localhost:<port>/` as a redirect URI at Ducker ID, and add that origin to its
+`CORS_ORIGINS`. The deployed build never has it (ADR-0012).
 
 ## Commands
 
@@ -66,6 +73,7 @@ There is nothing to configure — the game reads no required environment variabl
 | `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
 | `pnpm test` | Vitest — rules and components |
 | `pnpm test:e2e` | Playwright against the built static export, at four viewports |
+| `pnpm build:e2e-auth` | Flag-on build into `out-auth/` (fake issuer) for the sign-in e2e spec |
 | `pnpm check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
 | `pnpm check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
 | `pnpm release:next` | Which tag the next release would get, and why |

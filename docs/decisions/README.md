@@ -19,6 +19,7 @@
 | [ADR-0009](0009-tang-la-phang-thay-cho-chong-bai-so-huu-la.md) | Một tầng lá phẳng, thay cho việc mỗi chồng sở hữu lá của nó | 2026-09-07 | accepted |
 | [ADR-0010](0010-nhan-bo-quy-uoc-view-dung-chung.md) | Nhận bộ quy ước view dùng chung của workspace `web-game` | 2026-09-11 | accepted |
 | [ADR-0011](0011-ux-persona-review-chay-tren-ban-deploy.md) | Chạy UX persona review trên bản deploy, không trên `pnpm dev` | 2026-09-12 | accepted |
+| [ADR-0012](0012-dang-nhap-ducker-id-tuy-chon.md) | Đăng nhập Ducker ID tuỳ chọn, chỉ danh tính, giao ở trạng thái tắt | 2026-10-04 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

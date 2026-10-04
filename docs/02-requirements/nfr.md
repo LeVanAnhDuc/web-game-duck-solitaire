@@ -28,7 +28,7 @@ dạng ~~(bỏ)~~ kèm lý do, vì ID không được tái dùng. -->
 | ~~NFR-SEC-01~~ | ~~(bỏ)~~ không có mutation phía server | — |
 | ~~NFR-SEC-02~~ | ~~(bỏ)~~ không có log, không có PII | — |
 | ~~NFR-SEC-03~~ | ~~(bỏ)~~ không có đăng nhập | — |
-| NFR-SEC-04 | Không có secret nào trong repo. Dự án này lẽ ra không cần biến môi trường nào — một biến mới xuất hiện là dấu hiệu phải xem lại kiến trúc | grep + review `.env.example` |
+| NFR-SEC-04 | Không có secret nào trong repo. Dự án này lẽ ra không cần biến môi trường nào — một biến mới xuất hiện là dấu hiệu phải xem lại kiến trúc. **Ngoại lệ có biên giới (ADR-0012):** đúng sáu biến `NEXT_PUBLIC_*` (đường dẫn gốc, cờ, issuer, client id, scope, đường dẫn hồ sơ), đều tuỳ chọn, không giá trị mặc định trong code; `deploy.yml` chỉ truyền đường dẫn gốc | grep + review `.env.example` |
 | NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `dependency-review-action` chặn ở mỗi PR (cổng thật); Dependabot alert + PR sửa tự động lo lỗ hổng mới trên dependency cũ; `pnpm check:audit` xem danh sách alert ở máy. Không dùng `pnpm audit` — nguồn là alert GitHub dựng từ `pnpm-lock.yaml` đã commit. Xem ADR-0008 |
 | ~~NFR-SEC-06~~ | ~~(bỏ)~~ không có lỗi phía server để trả về | — |
 
@@ -64,7 +64,7 @@ dạng ~~(bỏ)~~ kèm lý do, vì ID không được tái dùng. -->
 
 | ID | Ngưỡng | Cách kiểm |
 | --- | --- | --- |
-| NFR-DATA-01 | Dự án **không thu thập, không lưu, không gửi đi** bất kỳ dữ liệu người dùng nào. Không localStorage, không cookie, không analytics, không font tải từ CDN ngoài | grep `localStorage`/`document.cookie`/`fetch` + kiểm tab Network trống sau khi tải xong |
+| NFR-DATA-01 | Dự án **không thu thập, không lưu, không gửi đi** bất kỳ dữ liệu người dùng nào. Không localStorage, không cookie, không analytics, không font tải từ CDN ngoài. **Ngoại lệ có biên giới (ADR-0012):** sessionStorage chỉ với khoá `ducker.pkce`, xoá khi người chơi quay lại; mạng chỉ tới issuer đã cấu hình, và tới URL ảnh đại diện mà issuer trả về, chỉ sau khi người chơi bấm đăng nhập; cờ tắt thì không có gì | grep `localStorage`/`document.cookie`/`fetch` + kiểm tab Network trống sau khi tải xong — cờ tắt và chưa đăng nhập vẫn trống; `src/lib/auth/nfrData.test.ts` giới hạn `sessionStorage` và `fetch(` trong đúng hai file `duckerAuth.ts`, `duckerRequests.ts` |
 | ~~NFR-DATA-02~~ | ~~(bỏ)~~ không có tài khoản để xoá | — |
 | ~~NFR-DATA-03~~ | ~~(bỏ)~~ không có dữ liệu để khôi phục | — |
 
