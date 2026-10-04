@@ -4,7 +4,7 @@
 [![Deploy](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/actions/workflows/deploy.yml)
 [![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-duck-solitaire?sort=semver)](https://github.com/LeVanAnhDuc/web-game-duck-solitaire/releases)
 
-Klondike Solitaire in the browser. No account, no ads, no server — the whole game is a
+Klondike Solitaire in the browser. No game accounts, no ads, no server — the whole game is a
 static page that runs on the player's machine.
 
 **Play**: https://levananhduc.github.io/web-game-duck-solitaire/

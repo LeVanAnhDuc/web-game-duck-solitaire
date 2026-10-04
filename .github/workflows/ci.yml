@@ -67,6 +67,11 @@ jobs:
       - name: First-load JS budget
         run: pnpm check:bundle
 
+      # The same app with the Ducker ID flag ON and a fake issuer, for the sign-in spec
+      # only (ADR-0012). The ordinary out/ above stays flag-off.
+      - name: Build the flag-on export for the sign-in spec
+        run: pnpm build:e2e-auth
+
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
