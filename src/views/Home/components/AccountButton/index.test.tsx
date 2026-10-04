@@ -125,6 +125,26 @@ describe("AccountButton", () => {
     elsewhere.remove();
   });
 
+  it("keeps menu keys away from a window-level game handler while open, not after", () => {
+    auth.value = full;
+    render(<AccountButton />);
+    const gameKeys: string[] = [];
+    const game = (event: KeyboardEvent) => gameKeys.push(event.key);
+    window.addEventListener("keydown", game); // bubble phase, like the game's
+    try {
+      const trigger = openMenu();
+      fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowUp" });
+      fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+      expect(gameKeys).toEqual([]);
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      fireEvent.keyDown(document.body, { key: "ArrowUp" });
+      fireEvent.keyDown(document.body, { key: "Escape" });
+      expect(gameKeys).toEqual(["ArrowUp", "Escape"]);
+    } finally {
+      window.removeEventListener("keydown", game);
+    }
+  });
+
   it("does not leak keys to the board's keyboard handler", () => {
     auth.value = full;
     const onBoardKey = vi.fn();

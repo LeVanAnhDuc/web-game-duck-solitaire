@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FocusEvent, KeyboardEvent } from "react";
+import type { FocusEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 const ITEMS = '[role="menuitem"]';
 
@@ -31,41 +31,51 @@ export function useAccountMenu() {
         close(false);
       }
     };
+    // Capture phase on window, only while open: the game listens on window (Escape,
+    // useSelection) and on <main> (arrows, space, Enter), so a document-level or bubble
+    // listener would let the same key also act on the board behind the menu.
+    const onKey = (event: KeyboardEvent) => {
+      const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>(ITEMS) ?? []);
+      const index = items.indexOf(document.activeElement as HTMLElement);
+      const focusAt = (next: number) => items[(next + items.length) % items.length]?.focus();
+      switch (event.key) {
+        case "Escape":
+          close(true);
+          break;
+        case "ArrowDown":
+          focusAt(index + 1);
+          break;
+        case "ArrowUp":
+          focusAt(index < 0 ? items.length - 1 : index - 1);
+          break;
+        case "Home":
+          focusAt(0);
+          break;
+        case "End":
+          focusAt(items.length - 1);
+          break;
+        case "Tab":
+          close(false); // focus carries on to the next control; never pulled back
+          event.stopPropagation();
+          return; // Tab keeps its default: it must still move focus
+        default:
+          return;
+      }
+      event.stopPropagation();
+      event.preventDefault();
+    };
     document.addEventListener("pointerdown", onPointer);
+    window.addEventListener("keydown", onKey, true);
     menuRef.current?.querySelector<HTMLElement>(ITEMS)?.focus();
-    return () => document.removeEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      window.removeEventListener("keydown", onKey, true);
+    };
   }, [open, close]);
 
-  const onKeyDown = (event: KeyboardEvent) => {
+  /** Keys typed inside the account control never reach the board's <main> handler. */
+  const onKeyDown = (event: ReactKeyboardEvent) => {
     event.stopPropagation();
-    if (!open) return;
-    const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>(ITEMS) ?? []);
-    const index = items.indexOf(document.activeElement as HTMLElement);
-    const focusAt = (next: number) => {
-      event.preventDefault();
-      items[(next + items.length) % items.length]?.focus();
-    };
-    switch (event.key) {
-      case "Escape":
-        event.preventDefault();
-        close(true);
-        break;
-      case "ArrowDown":
-        focusAt(index + 1);
-        break;
-      case "ArrowUp":
-        focusAt(index < 0 ? items.length - 1 : index - 1);
-        break;
-      case "Home":
-        focusAt(0);
-        break;
-      case "End":
-        focusAt(items.length - 1);
-        break;
-      case "Tab":
-        close(false); // focus carries on to the next control; never pulled back
-        break;
-    }
   };
 
   /**

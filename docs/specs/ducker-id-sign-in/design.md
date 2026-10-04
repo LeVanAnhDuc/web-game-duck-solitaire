@@ -5,7 +5,7 @@ Spec chung (hành vi, copy, biến môi trường, kiểm thử): `web-game/docs
 ## Chỗ đặt và giao diện
 
 - Đầu trang, bên phải, cạnh nhãn "Ván số N" (`src/views/Home/index.tsx`). Nút icon + chữ giống thanh công cụ (`min-h-[44px]`, `bg-toolbar`, `text-fg`), vành tiêu điểm hai lớp `--ring-focus` + `--ring-focus-edge`. Popover cùng màu thanh công cụ. Chỉ token trong `MASTER.md`, thang 4/8/12/16, font hệ thống, icon lucide, không có transition riêng (chuyển động giảm đã tắt `transition-property`).
-- Avatar: ảnh hoặc chữ cái đầu trên nền `--ring-focus`. Menu: tên (hoặc email nếu không có tên), email nếu có, **Mở hồ sơ Ducker ID** (`target=_blank rel="noopener noreferrer"`), **Đăng xuất**. Menu nằm trên mọi lá bài (z-index trên `FLIGHT_Z`). Bàn phím: mũi tên, Home/End, Esc (trả tiêu điểm cho nút), Tab đóng menu; phím trong menu không lọt tới bộ xử lý phím của bàn bài.
+- Avatar: ảnh hoặc chữ cái đầu trên nền `--ring-focus`. Menu: tên (hoặc email nếu không có tên), email nếu có, **Mở hồ sơ Ducker ID** (`target=_blank rel="noopener noreferrer"`), **Đăng xuất**. Menu nằm trên mọi lá bài (z-index trên `FLIGHT_Z`). Bàn phím: mũi tên, Home/End, Esc (trả tiêu điểm cho nút), Tab đóng menu; khi menu mở, phím menu bị chặn ở pha capture trên `window` nên không tới `useSelection` (Escape) hay `<main>` (mũi tên, Space, Enter) của bàn bài.
 - Khi cờ bật, dòng "Không tài khoản · …" đổi thành "Không tài khoản riêng · …" để không mâu thuẫn với nút; cờ tắt giữ nguyên chữ cũ.
 - Chuỗi trong `src/lib/strings.ts` (`account.*`, `taglineWithSignIn`).
 
