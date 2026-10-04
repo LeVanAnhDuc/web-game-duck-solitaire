@@ -2,6 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4183;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+// A second static server for the flag-ON build (pnpm build:e2e-auth), used only by
+// e2e/ducker-id-sign-in.spec.ts. 4183 and 4185 stay clear of Ducker ID on 3000 / 5000.
+const AUTH_PORT = 4185;
+const AUTH_URL = `http://127.0.0.1:${AUTH_PORT}`;
 
 /**
  * The e2e suite runs against the STATIC EXPORT, not a dev server: that is what
@@ -29,10 +33,18 @@ export default defineConfig({
     { name: "tablet-768", use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 900 } } },
     { name: "desktop-1440", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
   ],
-  webServer: {
-    command: `node scripts/serve.mjs ${PORT} out`,
-    url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: `node scripts/serve.mjs ${PORT} out`,
+      url: BASE_URL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+    {
+      command: `node scripts/serve.mjs ${AUTH_PORT} out-auth`,
+      url: AUTH_URL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+  ],
 });

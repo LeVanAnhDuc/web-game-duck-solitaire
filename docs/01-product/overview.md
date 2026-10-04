@@ -21,7 +21,7 @@ Người chơi giải trí ngắn, đã biết luật Klondike, mở game trong 
 
 ## 4. Non-Goals — dứt khoát không làm
 
-- **Không có tài khoản, không có server, không có backend.** Toàn bộ chạy trên máy người dùng dưới dạng trang tĩnh; thêm server là đổi cả mô hình chi phí lẫn mô hình bảo mật để đổi lấy một thứ chưa ai cần.
+- **Không có tài khoản của riêng game, không có server, không có backend.** Ngoại lệ duy nhất: đăng nhập Ducker ID **tuỳ chọn**, chỉ danh tính, không backend, không đồng bộ, giao ở trạng thái tắt sau một cờ tính năng — xem [`ADR-0012`](../decisions/0012-dang-nhap-ducker-id-tuy-chon.md). Toàn bộ chạy trên máy người dùng dưới dạng trang tĩnh; thêm server là đổi cả mô hình chi phí lẫn mô hình bảo mật để đổi lấy một thứ chưa ai cần.
 - **Không lưu ván đang chơi.** Tải lại trang là ván mới. Đã cân nhắc và loại ở giai đoạn brainstorm — xem [`ADR-0005`](../decisions/0005-khong-luu-van-dang-choi.md).
 - **Không có biến thể nào ngoài Klondike.** Không Spider, không FreeCell, không Pyramid. Mỗi biến thể là một bộ luật riêng, và bộ luật thứ hai sẽ kéo theo một lớp trừu tượng mà bản đầu không cần.
 - **Không đồng hồ, không điểm, không thống kê, không bảng xếp hạng.** Đây là những thứ nghe rất hợp lý và vẫn bị từ chối: chúng biến một trò thư giãn thành một trò để đo, và kéo theo localStorage, di trú dữ liệu, chống gian lận.

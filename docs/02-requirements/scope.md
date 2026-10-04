@@ -21,3 +21,4 @@
 | FR-12 | Chơi trọn ván bằng bàn phím | US-01 | xong |
 | FR-13 | Mở đúng một ván qua địa chỉ `?van=<seed>` | US-05 | xong |
 | FR-14 | Chạm một lần đưa lá lên chồng đích nếu hợp lệ | US-03 | xong |
+| FR-15 | Đăng nhập Ducker ID tuỳ chọn (OIDC + PKCE, chỉ danh tính), giao ở trạng thái tắt sau cờ tính năng | US-06 | xong |

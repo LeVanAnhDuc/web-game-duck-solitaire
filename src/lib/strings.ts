@@ -68,6 +68,13 @@ export const strings = {
    */
   tagline: "Không tài khoản · không quảng cáo · không lưu gì",
 
+  /**
+   * Shown instead of `tagline` only when the optional Ducker ID sign-in is on, so the
+   * line does not say "no account" right beside a sign-in button. The game itself still
+   * has no account of its own - ADR-0012. The deployed build never shows this.
+   */
+  taglineWithSignIn: "Không tài khoản riêng · không quảng cáo · không lưu gì",
+
   toolbar: {
     undo: "Hoàn lại",
     restart: "Chơi lại",
@@ -102,6 +109,19 @@ export const strings = {
   seed: {
     label: (seed: number) => `Ván số ${seed}`,
     hint: "Cùng số hiệu ván luôn cho cùng thế bài",
+  },
+
+  /**
+   * Optional Ducker ID sign-in (ADR-0012). Only rendered when the feature flag is on,
+   * so none of this reaches a player of the deployed build. The e2e suite selects by
+   * these labels.
+   */
+  account: {
+    signIn: "Đăng nhập",
+    signingIn: "Đang đăng nhập…",
+    menuLabel: "Tài khoản Ducker ID",
+    openProfile: "Mở hồ sơ Ducker ID",
+    signOut: "Đăng xuất",
   },
 
   win: {

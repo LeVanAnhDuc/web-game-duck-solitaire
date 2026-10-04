@@ -2,7 +2,7 @@
 
 > **Ngày:** 2026-09-04
 > **Trạng thái:** accepted
-> **Liên quan:** FR-09 · NFR-DATA-01
+> **Liên quan:** FR-09 · NFR-DATA-01 · xem ADR-0012 (ngoại lệ có biên giới cho đăng nhập Ducker ID tuỳ chọn)
 
 ## 1. Bối cảnh
 

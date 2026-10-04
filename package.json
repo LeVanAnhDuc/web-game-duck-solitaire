@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:e2e-auth": "node scripts/build-e2e-auth.mjs",
     "check:audit": "node scripts/check-audit.mjs",
     "check:bundle": "node scripts/check-bundle-size.mjs out",
     "release:next": "pnpm dlx git-cliff@2.13.1 --bumped-version",
