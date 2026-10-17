@@ -137,7 +137,7 @@ export class GamePage extends BasePage {
     return this.page.locator('[data-card][data-selected="true"]');
   }
 
-  /** Every card, in one read: id, pile, depth, face and label. */
+  /** Every card, in one read: id, pile, depth, face and label (without the ", đang chọn" selection suffix). */
   snapshot(): Promise<CardInfo[]> {
     return this.cards().evaluateAll((els) =>
       els.map((el) => ({
@@ -145,7 +145,8 @@ export class GamePage extends BasePage {
         pile: el.getAttribute("data-card-pile") ?? "",
         index: Number(el.getAttribute("data-index")),
         face: (el.getAttribute("data-face") ?? "down") as "up" | "down",
-        label: el.getAttribute("aria-label") ?? "",
+        // The selection suffix is not part of where the card is.
+        label: (el.getAttribute("aria-label") ?? "").replace(/, đang chọn$/, ""),
       })),
     );
   }
@@ -208,6 +209,16 @@ export class GamePage extends BasePage {
     }
   }
 
+  /**
+   * Taps a card on its exposed top strip. In a column the cards overlap, so a covered card's centre is under the card
+   * above it - a player aims at the strip that shows, and so does this.
+   */
+  async tapCard(card: Locator): Promise<void> {
+    const box = await card.boundingBox();
+    if (!box) throw new Error("cannot tap a card with no box");
+    await card.click({ position: { x: box.width / 2, y: 5 } });
+  }
+
   /** Taps a pile: on its top card when it has one (that card covers the slot), on the slot when it is empty. */
   async tapPile(key: PileKey): Promise<void> {
     const top = await this.topCard(key);
@@ -248,6 +259,19 @@ export class GamePage extends BasePage {
     await this.page.mouse.move(from.x + 12, from.y + 16);
     await this.page.mouse.move(to.x, to.y, { steps: 4 });
     await this.page.mouse.up();
+  }
+
+  /** A point in the empty gap between two side-by-side piles, level with the top of their slots. */
+  async gapBetween(left: PileKey, right: PileKey): Promise<{ x: number; y: number }> {
+    const a = await this.slot(left).boundingBox();
+    const b = await this.slot(right).boundingBox();
+    if (!a || !b) throw new Error(`no box for ${left} / ${right}`);
+    return { x: (a.x + a.width + b.x) / 2, y: a.y + 4 };
+  }
+
+  /** Taps a point on the page (an empty area, a gap) the way a mouse or a finger would. */
+  async tapAt(point: { x: number; y: number }): Promise<void> {
+    await this.page.mouse.click(point.x, point.y);
   }
 
   /** Moves keyboard focus onto a pile, the way a click or a screen reader would. */

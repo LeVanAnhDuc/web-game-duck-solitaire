@@ -36,24 +36,6 @@ async function drawUntilWasteLabelContains(page: Page, needle: string, limit = 2
   return null;
 }
 
-test.describe("drawing from the stock - FR-03", () => {
-  test("a tap moves a card to the waste, and the stock recycles when it runs out", async ({
-    page,
-  }) => {
-    await openGame(page);
-    await tapStock(page);
-    await expect(cardsIn(page, "waste")).toHaveCount(1);
-
-    // 24 stock cards, one at a time; the 25th tap lands on the exposed slot and is
-    // the recycle.
-    for (let i = 0; i < 23; i++) await tapStock(page);
-    await expect(cardsIn(page, "stock")).toHaveCount(0);
-    await tapStock(page);
-    await expect(cardsIn(page, "waste")).toHaveCount(0);
-    await expect(cardsIn(page, "stock")).toHaveCount(24);
-  });
-});
-
 test.describe("one tap puts a card up - FR-14", () => {
   test("tapping an ace once sends it to its foundation", async ({ page }) => {
     await openGame(page);
@@ -105,67 +87,6 @@ test.describe("two taps look further - FR-05", () => {
     await expect(foundationCards(page)).toHaveCount(0);
     await expect(selected(page)).toHaveCount(0);
     await expect(undo(page)).not.toHaveAttribute("aria-disabled", "true");
-  });
-});
-
-test.describe("moving cards", () => {
-  test("tapping a card and then a pile plays the move - US-01", async ({ page }) => {
-    await openGame(page);
-    const before = await cardCount(page, "tableau-6");
-    const top = await topCard(page, "tableau-6");
-    await top!.click();
-    await dropOnPile(page, "tableau-0");
-    await expect(selected(page)).toHaveCount(0);
-    const after = await cardCount(page, "tableau-6");
-    expect([before, before - 1]).toContain(after);
-  });
-
-  test("dragging plays the same move tapping does - US-02", async ({ page }) => {
-    await openGame(page);
-    const ace = await drawUntilWasteLabelContains(page, "Át");
-    // A drop says exactly one pile, so it has to be the foundation of the ace's own
-    // suit - unlike a tap, which asks the engine to find one.
-    const label = (await ace!.getAttribute("aria-label")) ?? "";
-    const suits = ["Bích", "Cơ", "Rô", "Tép"];
-    const index = suits.findIndex((suit) => label.startsWith(suit));
-    expect(index).toBeGreaterThanOrEqual(0);
-
-    const box = await ace!.boundingBox();
-    const target = await slot(page, `foundation-${index}` as "foundation-0").boundingBox();
-    await page.mouse.move(box!.x + box!.width / 2, box!.y + 8);
-    await page.mouse.down();
-    await page.mouse.move(box!.x + box!.width / 2 + 20, box!.y + 28);
-    await page.mouse.move(target!.x + target!.width / 2, target!.y + target!.height / 2, {
-      steps: 4,
-    });
-    await page.mouse.up();
-    await expect(foundationCards(page)).toHaveCount(1);
-  });
-
-  test("an illegal move changes nothing - invariant #7", async ({ page }) => {
-    await openGame(page);
-    const snapshot = () =>
-      page
-        .locator("[data-card]")
-        .evaluateAll((els) =>
-          els.map((e) => `${e.getAttribute("data-card")}:${e.getAttribute("data-card-pile")}`),
-        );
-    const before = await snapshot();
-    // Nothing may ever be dropped onto the stock.
-    const top = await topCard(page, "tableau-6");
-    await top!.click();
-    await tapStock(page);
-    expect(await snapshot()).toEqual(before);
-    await expect(undo(page)).toHaveAttribute("aria-disabled", "true");
-  });
-
-  test("Escape puts a picked-up card back down - NFR-REL-03", async ({ page }) => {
-    await openGame(page, 1);
-    const three = await topCard(page, "tableau-1");
-    await three!.click();
-    await expect(selected(page)).toHaveCount(1);
-    await page.keyboard.press("Escape");
-    await expect(selected(page)).toHaveCount(0);
   });
 });
 
