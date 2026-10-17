@@ -398,21 +398,3 @@ export class AccountMenu {
     return this.menu().getByRole("menuitem", { name: copy.account.signOut });
   }
 }
-
-// ── legacy helpers ────────────────────────────────────────────────────────
-// The function API of client/e2e/helpers.ts, kept only until every migrated spec is normalised onto GamePage.
-
-export const FIXED_SEED = 20260904;
-const legacy = (page: Page) => new GamePage(page);
-export const openGame = (page: Page, seed: number = FIXED_SEED) => legacy(page).goto(seed);
-export const board = (page: Page) => legacy(page).board();
-export const slot = (page: Page, key: PileKey) => legacy(page).slot(key);
-export const tableau = (page: Page, index: number) => legacy(page).slot(tableauKey(index));
-export const stockSlot = (page: Page) => legacy(page).slot("stock");
-export const cardsIn = (page: Page, key: PileKey) => legacy(page).cardsIn(key);
-export const cardCount = (page: Page, key: PileKey) => legacy(page).cardCount(key);
-export const topCard = (page: Page, key: PileKey) => legacy(page).topCard(key);
-export const cardAt = (page: Page, key: PileKey, index: number) => legacy(page).cardAt(key, index);
-export const tapStock = (page: Page) => legacy(page).tapStock();
-export const dropOnPile = (page: Page, key: PileKey) => legacy(page).tapPile(key);
-export const button = (page: Page, name: string) => page.getByRole("button", { name });

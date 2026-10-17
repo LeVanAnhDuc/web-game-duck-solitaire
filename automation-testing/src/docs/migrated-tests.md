@@ -7,7 +7,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 
 | Từ | Về | Trạng thái |
 |---|---|---|
-| `client/e2e/helpers.ts` | `src/pages/game.page.ts` | chưa chuẩn hóa |
+| `client/e2e/helpers.ts` | `src/pages/game.page.ts` (viết lại thành `GamePage` + `DrawModeDialog`, `WinDialog`, `AccountMenu`) | đã chuẩn hóa |
 | `client/e2e/fixtures.ts` | `src/fixtures/motion.fixture.ts` (gộp vào `mergeTests`) | đã chuẩn hóa |
 | `client/e2e/fixtures/winnable.json` | `src/data/files/winnable.json` | đã chuẩn hóa |
 | `client/e2e/smoke.spec.ts` | `src/tests/e2e/deal/deal.e2e.ts` (chia bài, cùng số → cùng ván, `?van` hỏng); aria-owns → `accessibility`, console + storage → `privacy` | đã chuẩn hóa |
@@ -19,7 +19,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 | `client/e2e/ducker-id-sign-in.spec.ts` | `src/tests/e2e/ducker-id/sign-in.e2e.ts` (cờ bật, project `app-auth`) + `ducker-id/flag-off.e2e.ts` (cờ tắt); issuer giả → `src/fixtures/issuer.fixture.ts` | đã chuẩn hóa |
 | `client/playwright.config.ts` (4 viewport, 2 webServer) | `playwright.config.ts` | gộp |
 
-Sửa tối thiểu lúc dời: import `test`/`expect` từ `@/fixtures`, helper từ `@/pages/game.page`, điều hướng `./?van=` thay
+Mọi module đã chuẩn hóa (2026-10-18). Sửa tối thiểu lúc dời: import `test`/`expect` từ `@/fixtures`, helper từ `@/pages/game.page`, điều hướng `./?van=` thay
 `/?van=` (base path của GitHub Pages). `win.spec.ts` từng import engine của app (`@/game/deal`, `applyMove`) làm mốc so
 sánh — gói này không import code app, nên mốc được đổi thành mô hình hộp đen: mỗi nước trong `winnable.json` nói đúng
 chồng nào đổi bao nhiêu lá.
