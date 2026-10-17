@@ -1,21 +1,29 @@
-import { expect, test } from "@/fixtures";
-import { openGame } from "@/pages/game.page";
+import { test, expect } from "@/fixtures";
+import { copy } from "@/data/copy";
+import { SEED } from "@/data/test-data";
 
-// The deployed build (flag off) - split out of the old ducker-id-sign-in.spec.ts so it runs on project "app".
-const signInButton = (page: import("@playwright/test").Page) => page.getByRole("button", { name: "Đăng nhập" });
-const accountButton = (page: import("@playwright/test").Page) =>
-  page.getByRole("button", { name: "Tài khoản Ducker ID" });
+// FR-15 · ADR-0012 · invariant #10. The deployed build: the flag is off, so sign-in does not exist at all - no control,
+// no storage, no callback handling, no request. Runs on project "app" (dev and prd alike).
 
-test.describe("flag off (the deployed build)", () => {
-  test("renders no sign-in control and keeps storage empty", async ({ page }) => {
-    await openGame(page);
-    await expect(signInButton(page)).toHaveCount(0);
-    await expect(accountButton(page)).toHaveCount(0);
-    const stored = await page.evaluate(() => ({
-      session: window.sessionStorage.length,
-      local: window.localStorage.length,
-    }));
-    expect(stored).toEqual({ session: 0, local: 0 });
+test("cờ tắt thì không có nút đăng nhập, không đọc callback, không chạm storage", { tag: ["@TC-DUCKERID-001", "@smoke"] }, async ({
+  page,
+  gamePage,
+  urls,
+}) => {
+  const origin = new URL(urls.webUrl).origin;
+  const outside: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).origin !== origin) outside.push(r.url());
   });
-});
+  await page.goto(`./?van=${SEED}&code=x&state=y`);
+  await gamePage.waitReady();
 
+  await expect(gamePage.account.signInButton()).toHaveCount(0);
+  await expect(gamePage.account.trigger()).toHaveCount(0);
+  // The callback parameters are not the game's business when sign-in is off: left exactly where they were.
+  expect(new URL(page.url()).searchParams.get("code")).toBe("x");
+  await expect(gamePage.header().getByText(copy.tagline, { exact: true })).toBeVisible();
+  const stored = await page.evaluate(() => ({ session: window.sessionStorage.length, local: window.localStorage.length }));
+  expect(stored).toEqual({ session: 0, local: 0 });
+  expect(outside).toEqual([]);
+});

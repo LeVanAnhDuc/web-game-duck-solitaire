@@ -16,7 +16,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 | `client/e2e/motion.spec.ts` | `src/tests/e2e/motion/animation.e2e.ts` (chuyển động bật, `page.clock`); "with motion off" → `accessibility` | đã chuẩn hóa |
 | `client/e2e/layout.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` (mỗi bề rộng một test, thêm 1024px) | đã chuẩn hóa |
 | `client/e2e/ux-feedback.spec.ts` | `src/tests/e2e/accessibility/screen-reader.e2e.ts` (F-01/02/03, đổi tên từ `feedback.e2e.ts`); F-04/05/10 → `deal`, F-06/07 → `keyboard`, F-09 → `draw-mode` | đã chuẩn hóa |
-| `client/e2e/ducker-id-sign-in.spec.ts` | `src/tests/e2e/ducker-id/sign-in.e2e.ts` (cờ bật, project `app-auth`) + `ducker-id/flag-off.e2e.ts` (cờ tắt) | chưa chuẩn hóa |
+| `client/e2e/ducker-id-sign-in.spec.ts` | `src/tests/e2e/ducker-id/sign-in.e2e.ts` (cờ bật, project `app-auth`) + `ducker-id/flag-off.e2e.ts` (cờ tắt); issuer giả → `src/fixtures/issuer.fixture.ts` | đã chuẩn hóa |
 | `client/playwright.config.ts` (4 viewport, 2 webServer) | `playwright.config.ts` | gộp |
 
 Sửa tối thiểu lúc dời: import `test`/`expect` từ `@/fixtures`, helper từ `@/pages/game.page`, điều hướng `./?van=` thay

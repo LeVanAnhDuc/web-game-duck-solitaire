@@ -1,201 +1,207 @@
+import { test, expect } from "@/fixtures";
 import type { Page } from "@playwright/test";
-import { expect, test } from "@/fixtures";
-import { openGame } from "@/pages/game.page";
+import { copy } from "@/data/copy";
+import { DUCKER, SEED_THREE_TO_COLUMN_7 } from "@/data/test-data";
+
+// FR-15 · US-06 · ADR-0012 · invariant #10. Runs on project "app-auth": the flag-on export built by
+// `pnpm build:e2e-auth` against the fake issuer http://ducker.test, served on :4185. Nothing here reaches a real
+// Ducker ID - the fakeIssuer fixture answers every request to it.
+
+const SEED = SEED_THREE_TO_COLUMN_7;
+
+const search = (page: Page) => page.evaluate(() => window.location.search);
 
 /**
- * Optional Ducker ID sign-in (ADR-0012), end to end.
- *
- * Two builds, two servers (playwright.config.ts): the ordinary flag-OFF `out/` on the
- * default baseURL, and `out-auth/` (pnpm build:e2e-auth) with the flag ON and the fake
- * issuer http://ducker.test on port 4185 (project app-auth). Nothing here reaches a real Ducker ID: every
- * request to the issuer is answered by page.route.
+ * Next's router writes its hydration URL back into history AFTER the page is usable, so one early look can pass by
+ * luck: poll until the clean URL is there, then make sure it stays there.
  */
-
-const ISSUER = "http://ducker.test";
-const SEED = 12345;
-const CORS = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-headers": "*",
-};
-
-type Fake = { authorizeMode: "ok" | "denied" | "tampered"; issued: string[] };
-
-async function fakeIssuer(page: Page, mode: Fake["authorizeMode"] = "ok"): Promise<Fake> {
-  const fake: Fake = { authorizeMode: mode, issued: [] };
-  await page.route(`${ISSUER}/**`, async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
-    fake.issued.push(`${request.method()} ${url.pathname}`);
-    if (request.method() === "OPTIONS") {
-      await route.fulfill({ status: 204, headers: CORS });
-      return;
-    }
-    if (url.pathname === "/oauth/authorize") {
-      const back = new URL(url.searchParams.get("redirect_uri")!);
-      if (fake.authorizeMode === "denied") {
-        back.searchParams.set("error", "access_denied");
-      } else {
-        back.searchParams.set("code", "code-1");
-      }
-      back.searchParams.set(
-        "state",
-        fake.authorizeMode === "tampered" ? "not-the-state" : url.searchParams.get("state")!,
-      );
-      await route.fulfill({ status: 302, headers: { location: back.toString() } });
-      return;
-    }
-    if (url.pathname === "/oauth/token") {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        headers: CORS,
-        body: JSON.stringify({ access_token: "at-1", token_type: "Bearer", expires_in: 900 }),
-      });
-      return;
-    }
-    if (url.pathname === "/oauth/userinfo") {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        headers: CORS,
-        body: JSON.stringify({ sub: "u1", name: "Lê Văn Anh Đức", email: "duc@ducker.id" }),
-      });
-      return;
-    }
-    await route.fulfill({ status: 404 });
-  });
-  return fake;
-}
-
-const signInButton = (page: Page) => page.getByRole("button", { name: "Đăng nhập" });
-const accountButton = (page: Page) => page.getByRole("button", { name: "Tài khoản Ducker ID" });
-/**
- * Next's router writes its hydration URL back into history AFTER the page is already
- * usable, so a single early look can pass by luck. Look, let hydration finish, look again.
- */
-async function expectSettledSearch(page: Page, search: string) {
+async function expectSettledSearch(page: Page, expected: string): Promise<void> {
   await page.waitForLoadState("load");
-  await expect.poll(() => new URL(page.url()).search).toBe(search);
-  await page.waitForTimeout(600);
-  expect(new URL(page.url()).search).toBe(search);
+  await expect.poll(() => search(page)).toBe(expected);
+  await expect.poll(() => search(page), { intervals: [200, 200, 200] }).toBe(expected);
 }
 
-const seedLabel = (page: Page) => page.getByText(`Ván số ${SEED}`);
+test("chưa bấm thì không gọi issuer, không lưu gì; câu cam kết nói \"không tài khoản riêng\"", { tag: ["@TC-DUCKERID-002"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  const issuer = await fakeIssuer();
+  await gamePage.goto(SEED);
+  await expect(gamePage.account.signInButton()).toBeVisible();
+  await expect(gamePage.header().getByText(copy.taglineWithSignIn, { exact: true })).toBeVisible();
+  expect(issuer.calls()).toEqual([]);
+  expect(await page.evaluate(() => window.sessionStorage.length + window.localStorage.length)).toBe(0);
+});
 
-test.describe("flag on, fake issuer", () => {
-  test("signed out: nothing is requested and nothing stored before the click", async ({ page }) => {
-    const fake = await fakeIssuer(page);
-    await openGame(page, SEED);
-    await expect(signInButton(page)).toBeVisible();
-    expect(fake.issued).toEqual([]);
-    expect(await page.evaluate(() => window.sessionStorage.length)).toBe(0);
+test("đăng nhập: thấy tài khoản, địa chỉ sạch, giữ ?van, đăng xuất trả lại nút", { tag: ["@TC-DUCKERID-003", "@smoke"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  const noise: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error" || m.type() === "warning") noise.push(`${m.type()}: ${m.text()}`);
   });
+  page.on("pageerror", (e) => noise.push(`pageerror: ${e.message}`));
+  const issuer = await fakeIssuer();
+  await gamePage.goto(SEED);
+  const dealt = await gamePage.snapshot();
 
-  test("signs in, shows the account, keeps ?van and a clean URL, signs out", async ({ page }) => {
-    const noise: string[] = [];
-    page.on("console", (m) => {
-      if (m.type() === "error" || m.type() === "warning") noise.push(`${m.type()}: ${m.text()}`);
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.trigger()).toBeVisible();
+
+  await expectSettledSearch(page, `?van=${SEED}`);
+  await expect(gamePage.seedLabel(SEED)).toBeVisible();
+  expect(await gamePage.snapshot()).toEqual(dealt);
+  expect(issuer.calls()).toEqual(["GET /oauth/authorize", "POST /oauth/token", "GET /oauth/userinfo"]);
+  // The PKCE entry is gone once the player is back, and the profile was never written down.
+  expect(await page.evaluate(() => window.sessionStorage.length + window.localStorage.length)).toBe(0);
+
+  await gamePage.account.trigger().click();
+  await expect(gamePage.account.menu()).toContainText(DUCKER.user.name);
+  await expect(gamePage.account.menu()).toContainText(DUCKER.user.email);
+  await expect(gamePage.account.profileLink()).toHaveAttribute("href", `${DUCKER.issuer}${DUCKER.profilePath}`);
+  await expect(gamePage.account.profileLink()).toHaveAttribute("target", "_blank");
+
+  await gamePage.account.signOutItem().click();
+  await expect(gamePage.account.signInButton()).toBeVisible();
+  await expect(gamePage.account.signInButton()).toBeFocused();
+  expect(noise).toEqual([]);
+});
+
+test("Esc đóng menu tài khoản và trả tiêu điểm về nút; phím trong menu không chạm tới bàn bài", { tag: ["@TC-DUCKERID-004"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  await fakeIssuer();
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await gamePage.account.trigger().click();
+  await expect(gamePage.account.profileLink()).toBeFocused();
+  const before = await gamePage.snapshot();
+
+  await page.keyboard.press("ArrowDown");
+  await expect(gamePage.account.signOutItem()).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(gamePage.account.profileLink()).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(gamePage.account.signOutItem()).toBeFocused();
+  expect(await gamePage.snapshot()).toEqual(before);
+
+  await page.keyboard.press("Escape");
+  await expect(gamePage.account.menu()).toHaveCount(0);
+  await expect(gamePage.account.trigger()).toHaveAttribute("aria-expanded", "false");
+  await expect(gamePage.account.trigger()).toBeFocused();
+});
+
+test("đã đăng nhập vẫn chơi như thường", { tag: ["@TC-DUCKERID-005"] }, async ({ gamePage, fakeIssuer }) => {
+  await fakeIssuer();
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.trigger()).toBeVisible();
+  await gamePage.cardNamed("Tép Ba").dblclick();
+  await expect(gamePage.cardNamed("Tép Ba")).toHaveAttribute("data-card-pile", "tableau-6");
+  await gamePage.tapStock();
+  await expect(gamePage.cardsIn("waste")).toHaveCount(1);
+});
+
+test("tải lại khi đang đăng nhập là về chưa đăng nhập", { tag: ["@TC-DUCKERID-006", "@smoke"] }, async ({ page, gamePage, fakeIssuer }) => {
+  await fakeIssuer();
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.trigger()).toBeVisible();
+  await gamePage.reload();
+  await expectSettledSearch(page, `?van=${SEED}`);
+  await expect(gamePage.account.signInButton()).toBeVisible();
+  await expect(gamePage.seedLabel(SEED)).toBeVisible();
+});
+
+test("từ chối ở Ducker ID thì về chưa đăng nhập, ván còn nguyên", { tag: ["@TC-DUCKERID-007"] }, async ({ page, gamePage, fakeIssuer }) => {
+  const issuer = await fakeIssuer("deny");
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await expectSettledSearch(page, `?van=${SEED}`);
+  await expect(gamePage.account.signInButton()).toBeVisible();
+  await expect(gamePage.seedLabel(SEED)).toBeVisible();
+  expect(issuer.calls()).toEqual(["GET /oauth/authorize"]);
+});
+
+test("state bị sửa thì bị từ chối, không bao giờ đổi code lấy token", { tag: ["@TC-DUCKERID-008", "@smoke"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  const issuer = await fakeIssuer("tamper");
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.signInButton()).toBeVisible();
+  await page.waitForLoadState("load");
+  await expect.poll(() => search(page)).not.toMatch(/code=|state=/);
+  expect(issuer.calls()).toEqual(["GET /oauth/authorize"]);
+});
+
+test("issuer không trả lời thì sau tối đa 15 giây về chưa đăng nhập", { tag: ["@TC-DUCKERID-009"] }, async ({ gamePage, fakeIssuer }) => {
+  // AbortSignal.timeout runs on the browser's real clock (page.clock cannot fake it), so this one waits for real.
+  test.setTimeout(60_000);
+  await fakeIssuer("hang");
+  await gamePage.goto(SEED);
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.signingInButton()).toBeVisible();
+  await expect(gamePage.account.signInButton()).toBeVisible({ timeout: 20_000 });
+  await expect(gamePage.seedLabel(SEED)).toBeVisible();
+});
+
+test("sessionStorage bị chặn thì bấm đăng nhập không đưa đi đâu, game vẫn chạy", { tag: ["@TC-DUCKERID-010"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "sessionStorage", {
+      get() {
+        throw new DOMException("blocked", "SecurityError");
+      },
     });
-    page.on("pageerror", (e) => noise.push(`pageerror: ${e.message}`));
-    const fake = await fakeIssuer(page);
-
-    await openGame(page, SEED);
-    await signInButton(page).click();
-    await expect(accountButton(page)).toBeVisible();
-
-    await expectSettledSearch(page, `?van=${SEED}`);
-    await expect(seedLabel(page)).toBeVisible();
-    expect(await page.evaluate(() => window.sessionStorage.length)).toBe(0);
-    expect(fake.issued).toEqual([
-      "GET /oauth/authorize",
-      "POST /oauth/token",
-      "GET /oauth/userinfo",
-    ]);
-
-    await accountButton(page).click();
-    await expect(page.getByText("Lê Văn Anh Đức")).toBeVisible();
-    await expect(page.getByText("duc@ducker.id")).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Mở hồ sơ Ducker ID" })).toHaveAttribute(
-      "href",
-      `${ISSUER}/profile`,
-    );
-
-    await page.keyboard.press("Escape");
-    await expect(accountButton(page)).toHaveAttribute("aria-expanded", "false");
-    await expect(accountButton(page)).toBeFocused();
-
-    await accountButton(page).click();
-    await page.getByRole("menuitem", { name: "Đăng xuất" }).click();
-    await expect(signInButton(page)).toBeVisible();
-    await expect(signInButton(page)).toBeFocused();
-    expect(noise).toEqual([]);
   });
+  const issuer = await fakeIssuer();
+  await gamePage.goto(SEED);
+  const url = page.url();
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.signInButton()).toBeEnabled();
+  expect(page.url()).toBe(url);
+  expect(issuer.calls()).toEqual([]);
+  await gamePage.tapStock();
+  await expect(gamePage.cardsIn("waste")).toHaveCount(1);
+});
 
-  test("a reload while signed in is signed out again", async ({ page }) => {
-    await fakeIssuer(page);
-    await openGame(page, SEED);
-    await signInButton(page).click();
-    await expect(accountButton(page)).toBeVisible();
-    await page.reload();
-    await expectSettledSearch(page, `?van=${SEED}`);
-    await expect(signInButton(page)).toBeVisible();
-    await expect(seedLabel(page)).toBeVisible();
-  });
+test("nút đăng nhập rộng 44px, không đè số hiệu ván, menu nằm trong màn hình và không làm header nhảy", { tag: ["@TC-DUCKERID-011"] }, async ({
+  page,
+  gamePage,
+  fakeIssuer,
+}) => {
+  await fakeIssuer();
+  await gamePage.goto(SEED);
+  const button = (await gamePage.account.signInButton().boundingBox())!;
+  const seed = (await gamePage.seedLabel(SEED).boundingBox())!;
+  expect(button.width).toBeGreaterThanOrEqual(44);
+  expect(button.height).toBeGreaterThanOrEqual(44);
+  const apart =
+    button.x >= seed.x + seed.width || seed.x >= button.x + button.width || button.y >= seed.y + seed.height || seed.y >= button.y + button.height;
+  expect(apart).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 
-  test("denying at the issuer lands signed out, with the deal intact", async ({ page }) => {
-    await fakeIssuer(page, "denied");
-    await openGame(page, SEED);
-    await signInButton(page).click();
-    await expect(signInButton(page)).toBeVisible();
-    await expectSettledSearch(page, `?van=${SEED}`);
-    await expect(seedLabel(page)).toBeVisible();
-  });
-
-  test("a tampered state is refused without exchanging the code", async ({ page }) => {
-    const fake = await fakeIssuer(page, "tampered");
-    await openGame(page, SEED);
-    await signInButton(page).click();
-    await expect(signInButton(page)).toBeVisible();
-    expect(fake.issued).toEqual(["GET /oauth/authorize"]);
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(600);
-    expect(new URL(page.url()).search).not.toMatch(/code=|state=/);
-  });
-
-  test("the control is a 44px target that overlaps nothing and never scrolls sideways", async ({
-    page,
-  }) => {
-    await fakeIssuer(page);
-    await openGame(page, SEED);
-    const button = await signInButton(page).boundingBox();
-    const seed = await seedLabel(page).boundingBox();
-    expect(button).not.toBeNull();
-    expect(seed).not.toBeNull();
-    expect(button!.width).toBeGreaterThanOrEqual(44);
-    expect(button!.height).toBeGreaterThanOrEqual(44);
-    const apart =
-      button!.x >= seed!.x + seed!.width ||
-      seed!.x >= button!.x + button!.width ||
-      button!.y >= seed!.y + seed!.height ||
-      seed!.y >= button!.y + button!.height;
-    expect(apart).toBe(true);
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
-
-    await signInButton(page).click();
-    await expect(accountButton(page)).toBeVisible();
-    const headerBox = () => page.locator("header").boundingBox();
-    const before = await headerBox();
-    await accountButton(page).click();
-    await expect(page.getByRole("menu")).toBeVisible();
-    expect(await headerBox()).toEqual(before);
-    const position = await page.getByRole("menu").evaluate((el) => getComputedStyle(el).position);
-    expect(position).toBe("absolute");
-    const menu = await page.getByRole("menu").boundingBox();
-    const viewport = page.viewportSize()!;
-    expect(menu!.x).toBeGreaterThanOrEqual(0);
-    expect(menu!.x + menu!.width).toBeLessThanOrEqual(viewport.width);
-  });
+  await gamePage.account.signInButton().click();
+  await expect(gamePage.account.trigger()).toBeVisible();
+  const header = await gamePage.header().boundingBox();
+  await gamePage.account.trigger().click();
+  await expect(gamePage.account.menu()).toBeVisible();
+  expect(await gamePage.header().boundingBox()).toEqual(header);
+  const menu = (await gamePage.account.menu().boundingBox())!;
+  const viewport = page.viewportSize()!;
+  expect(menu.x).toBeGreaterThanOrEqual(0);
+  expect(menu.x + menu.width).toBeLessThanOrEqual(viewport.width);
+  // The menu sits above every card: a click on its item reaches the item.
+  await gamePage.account.signOutItem().click({ trial: true });
 });

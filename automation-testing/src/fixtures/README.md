@@ -18,6 +18,7 @@ qua `use(...)`, dọn dẹp sau test (code sau `await use(...)`). Giống `@Bean
 | `accounts.fixture.ts` | `account` |
 | `motion.fixture.ts` | `motion` (option, mặc định `"off"`): giả lập `prefers-reduced-motion` cho `page` trước khi test chạy |
 | `pages.fixture.ts` | page object, mỗi trang một fixture |
+| `issuer.fixture.ts` | `fakeIssuer(mode)`: trả lời mọi request tới issuer giả `http://ducker.test` (ok / deny / tamper / hang), ghi lại các lần gọi |
 | `index.ts` | gộp tất cả bằng `mergeTests`, export `test`, `expect` |
 
 ## Quy tắc

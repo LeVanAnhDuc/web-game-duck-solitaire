@@ -1,5 +1,6 @@
 import { expect, mergeTests } from "@playwright/test";
 import { test as accountsTest } from "./accounts.fixture";
+import { test as issuerTest } from "./issuer.fixture";
 import { test as motionTest } from "./motion.fixture";
 import { test as pagesTest } from "./pages.fixture";
 
@@ -8,6 +9,7 @@ import { test as pagesTest } from "./pages.fixture";
 //   accounts  account
 //   motion    prefers-reduced-motion per test (off by default; the motion module turns it on)
 //   pages     page objects
+//   issuer    fakeIssuer: a stand-in Ducker ID for the flag-on export
 // A new concern (api client, mail inbox, rate gate…) gets its own *.fixture.ts and joins mergeTests here.
-export const test = mergeTests(accountsTest, motionTest, pagesTest);
+export const test = mergeTests(accountsTest, motionTest, pagesTest, issuerTest);
 export { expect };
