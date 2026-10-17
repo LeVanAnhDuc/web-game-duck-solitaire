@@ -249,12 +249,6 @@ test.describe("undo and restart - US-04, US-05", () => {
     expect(await ids()).toEqual(dealt);
   });
 
-  test("a new game changes the deal number in the address - FR-13", async ({ page }) => {
-    await openGame(page, 777);
-    await page.getByRole("button", { name: "Ván mới" }).click();
-    await expect(page).not.toHaveURL(/van=777\b/);
-    await expect(page).toHaveURL(/van=\d+/);
-  });
 });
 
 test.describe("changing draw mode asks first - US-05", () => {

@@ -80,20 +80,6 @@ test.describe("F-03 · an exhausted stock does not look like an empty foundation
   });
 });
 
-test.describe("F-04 + F-05 · the page says what it is", () => {
-  test("names itself and explains the seed on screen, not on hover", async ({ page }) => {
-    await openGame(page);
-
-    await expect(page.getByText("Duck Solitaire")).toBeVisible();
-    await expect(page.getByText(`Ván số ${FIXED_SEED}`)).toBeVisible();
-    await expect(page.getByText("Cùng số hiệu ván luôn cho cùng thế bài")).toBeVisible();
-    await expect(page.getByText("Không tài khoản · không quảng cáo · không lưu gì")).toBeVisible();
-
-    // The hint used to live in a `title`, which a phone can never show.
-    await expect(page.locator("header [title]")).toHaveCount(0);
-  });
-});
-
 test.describe("F-06 · the keyboard map reaches the eye", () => {
   test("stays hidden for a mouse, appears for a keyboard", async ({ page }) => {
     await openGame(page);
@@ -142,15 +128,6 @@ test.describe("F-09 · the confirm dialog can be escaped", () => {
     await expect(page.getByLabel("Chế độ rút")).toHaveValue("1");
     await expect(page.getByLabel("Chế độ rút")).toBeFocused();
     await expect(button(page, "Hoàn lại")).toHaveAttribute("aria-disabled", "false");
-  });
-});
-
-test.describe("F-10 · the tab has an icon", () => {
-  test("declares one, so the browser stops guessing at /favicon.ico", async ({ page }) => {
-    await openGame(page);
-    const href = await page.locator('link[rel="icon"]').first().getAttribute("href");
-    expect(href).toBeTruthy();
-    expect(href).toContain("icon");
   });
 });
 

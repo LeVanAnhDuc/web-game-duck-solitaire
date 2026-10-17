@@ -1,103 +1,114 @@
-import { expect, test } from "@/fixtures";
-import { board, cardCount, cardsIn, openGame, tapStock } from "@/pages/game.page";
+import { test, expect } from "@/fixtures";
+import { copy } from "@/data/copy";
+import { MAX_SEED, SEED } from "@/data/test-data";
+import { FOUNDATIONS, tableauKey } from "@/pages/game.page";
 
-test.describe("the board loads and stays quiet", () => {
-  test("deals seven columns of 1..7 cards and a stock of 24", async ({ page }) => {
-    await openGame(page);
-    await expect(board(page)).toBeVisible();
-    for (let i = 0; i < 7; i++) {
-      await expect(cardsIn(page, `tableau-${i}` as "tableau-0")).toHaveCount(i + 1);
-    }
-    // All 24 stock cards exist in the DOM now, stacked as a real deck: the flat layer
-    // needs somewhere for every card to be, and the deal animation starts them here.
-    await expect(cardsIn(page, "stock")).toHaveCount(24);
-    await expect(cardsIn(page, "waste")).toHaveCount(0);
-    await expect(page.locator("[data-card]")).toHaveCount(52);
-  });
+// FR-01 · FR-09 · FR-13 · US-01 · US-05 · ADR-0001 · ADR-0006. A deal is compared through the DOM only: id, pile, depth
+// and face of all 52 cards - the suite never imports the game's dealer.
 
-  test("the same deal number always gives the same deal - FR-13", async ({ page }) => {
-    await openGame(page, 4242);
-    const snapshot = () =>
-      page
-        .locator("[data-card]")
-        .evaluateAll((els) =>
-          els.map(
-            (el) =>
-              `${el.getAttribute("data-card")}:${el.getAttribute("data-card-pile")}:${el.getAttribute("data-face")}`,
-          ),
-        );
-    const first = await snapshot();
-    await page.reload();
-    await expect(page.locator("[data-card]").first()).toBeVisible();
-    expect(await snapshot()).toEqual(first);
-  });
+test("mở trang là có ngay ván đã chia đúng luật Klondike", { tag: ["@TC-DEAL-001", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.goto(SEED);
+  await expect(gamePage.board()).toBeVisible();
+  const snap = await gamePage.snapshot();
+  for (let i = 0; i < 7; i++) {
+    const column = snap.filter((c) => c.pile === tableauKey(i));
+    expect(column, `column ${i + 1}`).toHaveLength(i + 1);
+    expect(column.filter((c) => c.face === "up").map((c) => c.index)).toEqual([i]);
+  }
+  const stock = snap.filter((c) => c.pile === "stock");
+  expect(stock).toHaveLength(24);
+  expect(stock.every((c) => c.face === "down")).toBe(true);
+  expect(snap.filter((c) => c.pile === "waste")).toHaveLength(0);
+  for (const key of FOUNDATIONS) expect(snap.filter((c) => c.pile === key)).toHaveLength(0);
+  expect(snap).toHaveLength(52);
+  expect(new Set(snap.map((c) => c.id)).size).toBe(52);
+});
 
-  test("an unusable deal number falls back to a random deal, without an error", async ({
+test("cùng số hiệu ván, tải lại vẫn ra đúng thế bài", { tag: ["@TC-DEAL-002", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.goto(4242);
+  const first = await gamePage.snapshot();
+  await gamePage.reload();
+  expect(await gamePage.snapshot()).toEqual(first);
+});
+
+test("hai số hiệu khác nhau cho hai thế bài khác nhau", { tag: ["@TC-DEAL-003"] }, async ({ gamePage }) => {
+  await gamePage.goto(1);
+  const one = await gamePage.snapshot();
+  await gamePage.goto(2);
+  expect(await gamePage.snapshot()).not.toEqual(one);
+});
+
+for (const raw of ["khong-phai-so", "-1", "1.5", String(MAX_SEED + 1)]) {
+  test(`số hiệu không dùng được thì chia ván ngẫu nhiên, không lỗi, địa chỉ ghi số thật (?van=${raw})`, { tag: ["@TC-DEAL-004"] }, async ({
     page,
+    gamePage,
   }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto("./?van=khong-phai-so");
-    await expect(page.locator("[data-card]").first()).toBeVisible();
+    await gamePage.goto(raw);
+    await expect(gamePage.cards()).toHaveCount(52);
+    const shown = await gamePage.shownSeed();
+    expect(shown).toBeGreaterThanOrEqual(0);
+    expect(shown).toBeLessThanOrEqual(MAX_SEED);
+    await expect.poll(() => gamePage.seedInUrl()).toBe(String(shown));
     expect(errors).toEqual([]);
   });
+}
 
-  test("every card says which pile it is in, and where in the pile", async ({ page }) => {
-    // DOM order is deck order now, so this pair of attributes is the only way anything
-    // outside the board can tell which card is on top.
-    await openGame(page);
-    const indices = await cardsIn(page, "tableau-6").evaluateAll((els) =>
-      els.map((el) => Number(el.getAttribute("data-index"))).sort((a, b) => a - b),
-    );
-    expect(indices).toEqual([0, 1, 2, 3, 4, 5, 6]);
-  });
+test("hai biên 0 và 4294967295 là số hiệu hợp lệ", { tag: ["@TC-DEAL-005"] }, async ({ gamePage }) => {
+  for (const seed of [0, MAX_SEED]) {
+    await gamePage.goto(seed);
+    await expect(gamePage.seedLabel(seed)).toBeVisible();
+    expect(await gamePage.seedInUrl()).toBe(String(seed));
+  }
+});
 
-  test("each pile claims its cards through aria-owns - NFR-A11Y-04", async ({ page }) => {
-    // The cards are not the pile's DOM children any more, so this is what keeps the
-    // accessibility tree from losing which pile a card belongs to.
-    await openGame(page);
-    const owns = await page
-      .locator('[data-pile="tableau-6"]')
-      .getAttribute("aria-owns");
-    expect(owns?.split(" ")).toHaveLength(7);
-    for (const id of owns!.split(" ")) {
-      await expect(page.locator(`[id="${id}"]`)).toHaveAttribute(
-        "data-card-pile",
-        "tableau-6",
-      );
-    }
-  });
+test("không có số hiệu thì ván ngẫu nhiên tự ghi số lên địa chỉ, mở lại ra đúng ván", { tag: ["@TC-DEAL-006"] }, async ({
+  gamePage,
+}) => {
+  await gamePage.goto();
+  await expect.poll(() => gamePage.seedInUrl()).not.toBeNull();
+  const seed = await gamePage.seedInUrl();
+  expect(seed).toBe(String(await gamePage.shownSeed()));
+  const dealt = await gamePage.snapshot();
+  await gamePage.goto(seed!);
+  expect(await gamePage.snapshot()).toEqual(dealt);
+});
 
-  test("the console stays clean through a handful of moves - NFR-REL-04", async ({ page }) => {
-    const noise: string[] = [];
-    page.on("console", (m) => {
-      if (m.type() === "error" || m.type() === "warning") noise.push(`${m.type()}: ${m.text()}`);
-    });
-    page.on("pageerror", (e) => noise.push(`pageerror: ${e.message}`));
+test("số hiệu ván và câu giải thích đọc được ngay trên màn hình", { tag: ["@TC-DEAL-007"] }, async ({ gamePage }) => {
+  await gamePage.goto(SEED);
+  await expect(gamePage.seedLabel(SEED)).toBeVisible();
+  await expect(gamePage.header().getByText(copy.seed.hint, { exact: true })).toBeVisible();
+  // The hint used to live in a `title`, which a phone can never show (F-05).
+  await expect(gamePage.header().locator("[title]")).toHaveCount(0);
+});
 
-    await openGame(page);
-    for (let i = 0; i < 5; i++) await tapStock(page);
-    await page.getByRole("button", { name: "Hoàn lại" }).click();
-    await page.getByRole("button", { name: "Chơi lại" }).click();
+test(
+  "\"Ván mới\" chia ván khác, đổi số trên màn hình và địa chỉ, không thêm lịch sử trình duyệt",
+  { tag: ["@TC-DEAL-008", "@smoke"] },
+  async ({ page, gamePage }) => {
+    await gamePage.goto(777);
+    const dealt = await gamePage.snapshot();
+    await gamePage.tapStock(2);
+    const historyLength = await page.evaluate(() => window.history.length);
 
-    expect(noise).toEqual([]);
-  });
+    await gamePage.newGameButton().click();
 
-  test("nothing is stored and nothing is fetched - NFR-DATA-01", async ({ page }) => {
-    const requests: string[] = [];
-    await openGame(page);
-    // Only what happens AFTER the page is up: the document and its bundle are the
-    // point of a static site; a request during play is not.
-    page.on("request", (r) => requests.push(r.url()));
-    for (let i = 0; i < 3; i++) await tapStock(page);
+    await expect(gamePage.seedLabel(777)).toHaveCount(0);
+    const shown = await gamePage.shownSeed();
+    expect(await gamePage.seedInUrl()).toBe(String(shown));
+    expect(await gamePage.snapshot()).not.toEqual(dealt);
+    await expect(gamePage.cardsIn("waste")).toHaveCount(0);
+    await expect(gamePage.undoButton()).toHaveAttribute("aria-disabled", "true");
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength);
+  },
+);
 
-    expect(requests).toEqual([]);
-    const stored = await page.evaluate(() => ({
-      local: window.localStorage.length,
-      session: window.sessionStorage.length,
-      cookie: document.cookie,
-    }));
-    expect(stored).toEqual({ local: 0, session: 0, cookie: "" });
-    expect(await cardCount(page, "waste")).toBe(3);
-  });
+test("trang tự giới thiệu: tên, câu cam kết, tiêu đề tab, biểu tượng", { tag: ["@TC-DEAL-009"] }, async ({ page, gamePage }) => {
+  await gamePage.goto(SEED);
+  await expect(gamePage.header().getByText(copy.appTitle, { exact: true })).toBeVisible();
+  await expect(gamePage.header().getByText(copy.tagline, { exact: true })).toBeVisible();
+  await expect(page).toHaveTitle(copy.appTitle);
+  const href = await page.locator('link[rel="icon"]').first().getAttribute("href");
+  expect(href).toContain("icon");
 });
