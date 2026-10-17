@@ -121,3 +121,8 @@ jobs:
       - uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
+          # braces <= 3.0.3 (GHSA-vfj7-8cjw-p6xm, high) has no patched release at
+          # all. It only reaches the tree through build tooling - tailwindcss
+          # (chokidar, micromatch) and eslint-config-next (fast-glob) - so it never
+          # ships in the static export. Remove this line once a fixed braces exists.
+          allow-ghsas: GHSA-vfj7-8cjw-p6xm
