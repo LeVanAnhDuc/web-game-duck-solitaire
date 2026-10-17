@@ -117,12 +117,12 @@ place a position changes.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Two parallel jobs: lint + typecheck + unit tests, and build + first-load-JS budget + the end-to-end suite at four viewports. Pull requests get a third that fails on a newly introduced dependency with a high-or-above advisory (NFR-SEC-05) |
-| [`deploy.yml`](.github/workflows/deploy.yml) | push to `main` | Rebuilds with `NEXT_PUBLIC_BASE_PATH=/<repo>` and publishes `out/` to GitHub Pages. It re-runs the tests rather than trusting a green run it cannot see |
+| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Two parallel jobs: lint + typecheck + unit tests in `client/`, and build + first-load-JS budget + the [`automation-testing/`](automation-testing/) regression suite (typecheck, traceability check, every module). Pull requests get a third that fails on a newly introduced dependency with a high-or-above advisory (NFR-SEC-05) |
+| [`deploy.yml`](.github/workflows/deploy.yml) | push to `main` | Rebuilds with `NEXT_PUBLIC_BASE_PATH=/<repo>` and publishes `client/out/` to GitHub Pages. It re-runs the tests rather than trusting a green run it cannot see |
 | [`release.yml`](.github/workflows/release.yml) | push to `main` | Gates on the tests, works out the next version, composes the notes, and publishes a GitHub release |
 
-The end-to-end suite runs against `out/` through `scripts/serve.mjs` rather than a dev
-server, because a static export is what gets deployed and a dev server is not it.
+The regression suite runs against `client/out/` through `client/scripts/serve.mjs` rather than
+a dev server, because a static export is what gets deployed and a dev server is not it.
 
 ## Releases and versioning
 
