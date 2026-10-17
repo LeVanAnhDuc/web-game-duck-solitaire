@@ -13,6 +13,9 @@ export const FOUNDATIONS = [0, 1, 2, 3].map((i) => `foundation-${i}` as PileKey)
 export const TABLEAU = [0, 1, 2, 3, 4, 5, 6].map((i) => `tableau-${i}` as PileKey);
 export const PILES: PileKey[] = ["stock", "waste", ...FOUNDATIONS, ...TABLEAU];
 
+/** The two rows the keyboard walks, exactly as the board lays them out (client/src/views/Home/index.tsx ROWS). */
+export const KEY_ROWS: PileKey[][] = [["stock", "waste", ...FOUNDATIONS], TABLEAU];
+
 export const tableauKey = (index: number) => `tableau-${index}` as PileKey;
 export const foundationKey = (index: number) => `foundation-${index}` as PileKey;
 
@@ -272,6 +275,53 @@ export class GamePage extends BasePage {
   /** Taps a point on the page (an empty area, a gap) the way a mouse or a finger would. */
   async tapAt(point: { x: number; y: number }): Promise<void> {
     await this.page.mouse.click(point.x, point.y);
+  }
+
+  // ── keyboard ────────────────────────────────────────────────────────────
+
+  /** The pile that has DOM focus, or null. */
+  focusedPile(): Promise<PileKey | null> {
+    return this.page.evaluate(
+      () => (document.activeElement?.getAttribute("data-pile") ?? null) as PileKey | null,
+    );
+  }
+
+  /**
+   * Walks the keyboard cursor to `target` with the arrow keys, the way a keyboard player does: the board is two rows
+   * (stock, waste, four foundations / seven columns), ←/→ wrap along a row, ↑/↓ switch rows keeping the column as far
+   * as the row allows. Each step waits for focus to arrive (it moves in an effect after the state update).
+   *
+   * ↑/↓ switch rows only with nothing held or a non-tableau card held; holding a run from a column they change how deep
+   * the grab goes instead - so a column card cannot be carried to the top row this way (use Enter).
+   */
+  async moveCursorTo(target: PileKey): Promise<void> {
+    const pos = (key: PileKey) => {
+      const row = KEY_ROWS.findIndex((r) => r.includes(key));
+      return { row, col: KEY_ROWS[row]!.indexOf(key) };
+    };
+    const current = await this.focusedPile();
+    if (!current) throw new Error("the board has no keyboard focus");
+    let at = pos(current);
+    const goal = pos(target);
+    if (at.row !== goal.row) {
+      await this.page.keyboard.press(goal.row === 0 ? "ArrowUp" : "ArrowDown");
+      at = { row: goal.row, col: Math.min(at.col, KEY_ROWS[goal.row]!.length - 1) };
+      await this.waitFocusOn(KEY_ROWS[at.row]![at.col]!);
+    }
+    const len = KEY_ROWS[at.row]!.length;
+    const right = (goal.col - at.col + len) % len;
+    const left = (at.col - goal.col + len) % len;
+    const [key, steps] = right <= left ? (["ArrowRight", right] as const) : (["ArrowLeft", left] as const);
+    for (let i = 0; i < steps; i++) {
+      await this.page.keyboard.press(key);
+      at = { row: at.row, col: (at.col + (key === "ArrowRight" ? 1 : -1) + len) % len };
+      await this.waitFocusOn(KEY_ROWS[at.row]![at.col]!);
+    }
+  }
+
+  /** Resolves once `key` holds DOM focus. */
+  async waitFocusOn(key: PileKey): Promise<void> {
+    await this.page.waitForFunction((k) => document.activeElement?.getAttribute("data-pile") === k, key);
   }
 
   /** Moves keyboard focus onto a pile, the way a click or a screen reader would. */

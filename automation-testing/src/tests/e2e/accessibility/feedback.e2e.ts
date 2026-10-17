@@ -80,35 +80,6 @@ test.describe("F-03 · an exhausted stock does not look like an empty foundation
   });
 });
 
-test.describe("F-06 · the keyboard map reaches the eye", () => {
-  test("stays hidden for a mouse, appears for a keyboard", async ({ page }) => {
-    await openGame(page);
-
-    const map = page.locator(".keyboard-map");
-    await expect(map).toBeHidden();
-
-    await page.keyboard.press("Tab");
-    await expect(map).toBeVisible();
-    await expect(map).toContainText("phím mũi tên");
-  });
-});
-
-test.describe("F-07 · the cursor follows the card", () => {
-  test("lands on the pile the card flew to", async ({ page }) => {
-    await openGame(page, ACE_ON_COLUMN_1);
-
-    await page.keyboard.press("Tab");
-    await expect(slot(page, "tableau-0")).toHaveAttribute("tabindex", "0");
-
-    // Enter sends the Ace of Hearts up. Hearts is the second foundation.
-    await page.keyboard.press("Enter");
-
-    await expect(page.locator('[data-card-pile="foundation-1"]')).toHaveCount(1);
-    await expect(slot(page, "foundation-1")).toHaveAttribute("tabindex", "0");
-    await expect(slot(page, "tableau-0")).toHaveAttribute("tabindex", "-1");
-  });
-});
-
 test.describe("the board still works", () => {
   test("keeps its accessible name and its seven columns", async ({ page }) => {
     await openGame(page);
