@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures";
-import { cardAt, openGame, slot } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { cardAt, openGame, slot } from "@/pages/game.page";
 
 /**
  * The only tests that run with motion switched on.
@@ -11,7 +11,7 @@ import { cardAt, openGame, slot } from "./helpers";
  * browser then interpolates correctly is the browser's job.
  *
  * The rest of the suite runs with motion off for exactly that reason; see
- * e2e/fixtures.ts.
+ * src/fixtures/motion.fixture.ts.
  */
 
 test.describe("with motion on", () => {
@@ -21,7 +21,7 @@ test.describe("with motion on", () => {
     // Not "catch the frame where every card is on the stock": that frame lasts two
     // frames and chasing it measures the harness. What is observable for most of a
     // second is the stagger - each card waits its turn, in deal order.
-    await page.goto("/?van=20260904");
+    await page.goto("./?van=20260904");
     await expect(page.locator("[data-card]").first()).toBeVisible();
 
     const delays = await page
@@ -45,7 +45,7 @@ test.describe("with motion on", () => {
   test("cards move by transform, not by their offsets - NFR-PERF-02", async ({ page }) => {
     // Animating top/left makes the browser lay the page out again on every frame for
     // 52 elements. transform is composited, and that is the whole budget.
-    await page.goto("/?van=20260904");
+    await page.goto("./?van=20260904");
     await expect(page.locator("[data-card]").first()).toBeVisible();
     const style = await cardAt(page, "tableau-6", 6).evaluate((el) => {
       const cs = getComputedStyle(el);
@@ -86,7 +86,7 @@ test.describe("with motion off - NFR-A11Y-05", () => {
   test.use({ motion: "off" });
 
   test("the deal is instant: no card ever sits on the stock", async ({ page }) => {
-    await page.goto("/?van=20260904");
+    await page.goto("./?van=20260904");
     await expect(page.locator("[data-card]").first()).toBeVisible();
     const card = cardAt(page, "tableau-6", 6);
     const column = await slot(page, "tableau-6").boundingBox();

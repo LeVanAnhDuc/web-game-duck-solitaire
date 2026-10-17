@@ -1,17 +1,16 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
-import { openGame } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { openGame } from "@/pages/game.page";
 
 /**
  * Optional Ducker ID sign-in (ADR-0012), end to end.
  *
  * Two builds, two servers (playwright.config.ts): the ordinary flag-OFF `out/` on the
  * default baseURL, and `out-auth/` (pnpm build:e2e-auth) with the flag ON and the fake
- * issuer http://ducker.test on port 4185. Nothing here reaches a real Ducker ID: every
+ * issuer http://ducker.test on port 4185 (project app-auth). Nothing here reaches a real Ducker ID: every
  * request to the issuer is answered by page.route.
  */
 
-const AUTH_URL = "http://127.0.0.1:4185";
 const ISSUER = "http://ducker.test";
 const SEED = 12345;
 const CORS = {
@@ -83,22 +82,7 @@ async function expectSettledSearch(page: Page, search: string) {
 
 const seedLabel = (page: Page) => page.getByText(`Ván số ${SEED}`);
 
-test.describe("flag off (the deployed build)", () => {
-  test("renders no sign-in control and keeps storage empty", async ({ page }) => {
-    await openGame(page);
-    await expect(signInButton(page)).toHaveCount(0);
-    await expect(accountButton(page)).toHaveCount(0);
-    const stored = await page.evaluate(() => ({
-      session: window.sessionStorage.length,
-      local: window.localStorage.length,
-    }));
-    expect(stored).toEqual({ session: 0, local: 0 });
-  });
-});
-
 test.describe("flag on, fake issuer", () => {
-  test.use({ baseURL: AUTH_URL });
-
   test("signed out: nothing is requested and nothing stored before the click", async ({ page }) => {
     const fake = await fakeIssuer(page);
     await openGame(page, SEED);

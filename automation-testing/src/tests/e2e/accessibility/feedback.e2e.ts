@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures";
-import { FIXED_SEED, board, button, openGame, slot, stockSlot, tapStock } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { FIXED_SEED, board, button, openGame, slot, stockSlot, tapStock, type PileKey } from "@/pages/game.page";
 
 /**
  * The fixes that came out of the persona review on 2026-09-12.
@@ -158,6 +158,6 @@ test.describe("the board still works", () => {
   test("keeps its accessible name and its seven columns", async ({ page }) => {
     await openGame(page);
     await expect(board(page)).toBeVisible();
-    for (let i = 0; i < 7; i += 1) await expect(slot(page, `tableau-${i}`)).toBeVisible();
+    for (let i = 0; i < 7; i += 1) await expect(slot(page, `tableau-${i}` as PileKey)).toBeVisible();
   });
 });

@@ -4,12 +4,12 @@
  * The e2e suite needs to play a game through to the win screen. Roughly a fifth of
  * Klondike deals have no solution at all, and the ones that do are not solvable by
  * playing greedily, so the fixture cannot be written by hand or guessed. This searches
- * for one and writes it to e2e/fixtures/winnable.json, which is committed - the search
+ * for one and writes it to ../automation-testing/src/data/files/winnable.json, which is committed - the search
  * is slow and nothing about it needs to run in CI.
  *
  *   pnpm dlx vite-node -c vitest.config.mts scripts/find-winnable.ts -- [firstSeed] [seedCount]
  *
- * The result it writes is the FULL winning line. e2e/fixtures/winnable.json holds only
+ * The result it writes is the FULL winning line. The committed winnable.json holds only
  * the prefix up to the first fully-face-up position, because the rest is what the
  * game's own "Hoàn tất" button does, and replaying eighteen thousand moves through a
  * browser would take longer than the rest of the suite put together.
@@ -131,13 +131,13 @@ for (let seed = firstSeed; seed < firstSeed + seedCount; seed++) {
     process.stdout.write(`seed ${seed}: no solution within budget\n`);
     continue;
   }
-  mkdirSync("e2e/fixtures", { recursive: true });
+  mkdirSync("../automation-testing/src/data/files", { recursive: true });
   writeFileSync(
-    "e2e/fixtures/winnable.json",
+    "../automation-testing/src/data/files/winnable.json",
     `${JSON.stringify({ seed, drawMode: DRAW_MODE, moves }, null, 2)}\n`,
     "utf8",
   );
-  process.stdout.write(`seed ${seed}: solved in ${moves.length} moves -> e2e/fixtures/winnable.json\n`);
+  process.stdout.write(`seed ${seed}: solved in ${moves.length} moves -> ../automation-testing/src/data/files/winnable.json\n`);
   process.exit(0);
 }
 

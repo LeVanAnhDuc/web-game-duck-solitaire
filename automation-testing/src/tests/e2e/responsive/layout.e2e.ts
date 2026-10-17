@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures";
-import { openGame, slot, tableau } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { openGame, slot, tableau } from "@/pages/game.page";
 
 /**
  * These run at all four project viewports, so each assertion is really four - which is

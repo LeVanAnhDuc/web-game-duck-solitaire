@@ -1,17 +1,14 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
-import fixture from "./fixtures/winnable.json";
-import { cardAt, cardCount, slot, tapStock, type PileKey } from "./helpers";
-import { deal } from "@/game/deal";
-import { applyMove, type Move as EngineMove } from "@/game/moves";
-import { cardsOf, type GameState, type PileId } from "@/game/state";
+import { expect, test } from "@/fixtures";
+import fixture from "@/data/files/winnable.json";
+import { cardAt, cardCount, slot, tapStock, type PileKey } from "@/pages/game.page";
 
 /**
  * FR-08: one deal played all the way to the win screen, through the real UI.
  *
  * Roughly a fifth of Klondike deals cannot be won at all and the winnable ones are not
  * winnable by playing greedily, so this line was found by search - see
- * scripts/find-winnable.ts. The fixture stops at the first position where every card is
+ * ../client/scripts/find-winnable.ts. The fixture stops at the first position where every card is
  * face up, and the game's own "Hoàn tất" plays the rest: that is the button's whole
  * purpose, and it keeps the replay to something a browser test can afford.
  *
@@ -25,7 +22,11 @@ import { cardsOf, type GameState, type PileId } from "@/game/state";
  * by screen width; the layout suite is what covers the widths.
  */
 
-type Move = (typeof fixture.moves)[number];
+type PileRef = { kind: string; index?: number };
+type Move =
+  | { type: "draw" }
+  | { type: "recycle" }
+  | { type: "move"; from: PileRef; to: PileRef; count: number };
 
 const pileOf = (pile: { kind: string; index?: number }): PileKey =>
   (pile.index === undefined ? pile.kind : `${pile.kind}-${pile.index}`) as PileKey;
@@ -64,35 +65,27 @@ test.describe("a game played to the end - FR-08", () => {
   // about the rules and the win path; the widths are layout.spec.ts's job.
   test.use({ viewport: { width: 1440, height: 1600 } });
 
-  test("replaying a known solution reaches the win screen", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1440", "runs once, on the widest board");
-
-    await page.goto(`/?van=${fixture.seed}`);
+  test("replaying a known solution reaches the win screen", async ({ page }) => {
+    await page.goto(`./?van=${fixture.seed}`);
     await expect(page.locator("[data-card]").first()).toBeVisible();
 
     const autoComplete = page.getByRole("button", { name: "Hoàn tất" });
     // Nothing is finishable at the deal: every column still hides cards.
     await expect(autoComplete).toHaveAttribute("aria-disabled", "true");
 
-    // The engine is the reference. Replaying the same moves here and comparing pile
-    // counts after every step means a drag that quietly did nothing is caught on the
-    // move it happened, not four hundred moves later where it is unreadable.
-    let expected: GameState = deal(fixture.seed, fixture.drawMode as 1 | 3);
-
-    const PILES: { key: PileKey; id: PileId }[] = [
-      { key: "stock", id: { kind: "stock" } },
-      { key: "waste", id: { kind: "waste" } },
-      ...([0, 1, 2, 3] as const).map((i) => ({
-        key: `foundation-${i}` as PileKey,
-        id: { kind: "foundation", index: i } as PileId,
-      })),
-      ...([0, 1, 2, 3, 4, 5, 6] as const).map((i) => ({
-        key: `tableau-${i}` as PileKey,
-        id: { kind: "tableau", index: i } as PileId,
-      })),
+    // A black-box reference: every move says exactly which piles change and by how many, so pile counts are
+    // predicted from the fixture alone (no import of the game's engine). A drag that quietly did nothing is caught
+    // on the move it happened, not four hundred moves later where it is unreadable.
+    const PILES: PileKey[] = [
+      "stock",
+      "waste",
+      ...([0, 1, 2, 3] as const).map((i) => `foundation-${i}` as PileKey),
+      ...([0, 1, 2, 3, 4, 5, 6] as const).map((i) => `tableau-${i}` as PileKey),
     ];
+    const expected = new Map<PileKey, number>();
+    for (const key of PILES) expected.set(key, await cardCount(page, key));
 
-    const moves = fixture.moves as Move[];
+    const moves = fixture.moves as unknown as Move[];
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i]!;
       try {
@@ -104,12 +97,24 @@ test.describe("a game played to the end - FR-08", () => {
         );
       }
 
-      expected = applyMove(expected, move as EngineMove);
+      if (move.type === "draw") {
+        const n = Math.min(fixture.drawMode, expected.get("stock")!);
+        expected.set("stock", expected.get("stock")! - n);
+        expected.set("waste", expected.get("waste")! + n);
+      } else if (move.type === "recycle") {
+        expected.set("stock", expected.get("waste")!);
+        expected.set("waste", 0);
+      } else {
+        const from = pileOf(move.from);
+        const to = pileOf(move.to);
+        expected.set(from, expected.get(from)! - move.count);
+        expected.set(to, expected.get(to)! + move.count);
+      }
       for (const pile of PILES) {
         expect(
-          await cardCount(page, pile.key),
-          `move ${i} (${JSON.stringify(move)}): ${pile.key} is wrong`,
-        ).toBe(cardsOf(expected, pile.id).length);
+          await cardCount(page, pile),
+          `move ${i} (${JSON.stringify(move)}): ${pile} is wrong`,
+        ).toBe(expected.get(pile));
       }
     }
 

@@ -10,6 +10,7 @@ hooks) is `.claude/CLAUDE.md`; read it before working.
 | Folder | Holds |
 | --- | --- |
 | `client/` | the game app: `package.json`, `pnpm-lock.yaml`, `.env.example`, `src/`, `scripts/`, unit + component tests (vitest, next to the code) |
+| `automation-testing/` | the end-to-end regression suite (Playwright): requirements, test cases, defects, page objects, specs — its own `package.json`, rules in `automation-testing/CLAUDE.md` |
 | `docs/` | product docs, requirements, ADRs, feature specs — map in `docs/README.md` |
 | `.claude/`, `.githooks/`, `.github/`, `cliff.toml` | Claude config, git hooks, CI, release notes config — all at the root |
 
@@ -30,8 +31,17 @@ pnpm build:e2e-auth   # flag-on export (fake Ducker ID issuer) to client/out-aut
 pnpm check:bundle     # NFR-PERF-05 first-load JS budget (after build)
 pnpm check:audit      # NFR-SEC-05
 pnpm release:next     # next version, from the commits (git-cliff, repo root)
-pnpm test:e2e         # Playwright against client/out + client/out-auth
 ```
+
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test             # builds ../client (both exports), serves them, runs every module
+pnpm typecheck
+pnpm coverage:check   # REQ ↔ TC ↔ spec ↔ bug; --write regenerates the traceability matrix
+```
+
+Regression tests: automation-testing/ (/write-tests)
 
 Git hooks: `git config core.hooksPath .githooks` (commit-msg + pre-commit ESLint on staged
 `client/` files).

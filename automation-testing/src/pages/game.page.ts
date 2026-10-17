@@ -20,7 +20,7 @@ export type PileKey =
   | `tableau-${0 | 1 | 2 | 3 | 4 | 5 | 6}`;
 
 export async function openGame(page: Page, seed: number = FIXED_SEED) {
-  await page.goto(`/?van=${seed}`);
+  await page.goto(`./?van=${seed}`);
   // The deal happens on mount, so wait for a card rather than for load state.
   await expect(page.locator("[data-card]").first()).toBeVisible();
 }

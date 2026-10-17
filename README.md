@@ -77,16 +77,25 @@ Run from `client/`.
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
 | `pnpm test` | Vitest — rules and components |
-| `pnpm test:e2e` | Playwright against the built static export, at four viewports. Needs `pnpm build` **and** `pnpm build:e2e-auth` first (the sign-in spec uses the flag-on export) |
-| `pnpm build:e2e-auth` | Flag-on build into `out-auth/` (fake issuer) for the sign-in e2e spec |
+| `pnpm build:e2e-auth` | Flag-on build into `client/out-auth/` (fake issuer) for the regression suite's sign-in module |
 | `pnpm check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
 | `pnpm check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
 | `pnpm release:next` | Which tag the next release would get, and why |
 | `pnpm release:notes v1.1.0` | What that release's notes would say |
 | `pnpm format` | Prettier |
 
-`pnpm test:e2e` and `pnpm check:bundle` need `pnpm build` to have run first: both look at
-the exported site, because that is what GitHub Pages serves.
+`pnpm check:bundle` needs `pnpm build` to have run first: it looks at the exported site,
+because that is what GitHub Pages serves.
+
+The end-to-end regression suite is its own package, [`automation-testing/`](automation-testing/):
+requirements, test cases, defects and Playwright specs per module. It builds and serves the
+static export itself:
+
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test
+```
 
 ## How it is put together
 

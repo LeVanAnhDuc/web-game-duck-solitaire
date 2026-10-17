@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures";
-import { board, cardCount, cardsIn, openGame, tapStock } from "./helpers";
+import { expect, test } from "@/fixtures";
+import { board, cardCount, cardsIn, openGame, tapStock } from "@/pages/game.page";
 
 test.describe("the board loads and stays quiet", () => {
   test("deals seven columns of 1..7 cards and a stock of 24", async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe("the board loads and stays quiet", () => {
   }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto("/?van=khong-phai-so");
+    await page.goto("./?van=khong-phai-so");
     await expect(page.locator("[data-card]").first()).toBeVisible();
     expect(errors).toEqual([]);
   });

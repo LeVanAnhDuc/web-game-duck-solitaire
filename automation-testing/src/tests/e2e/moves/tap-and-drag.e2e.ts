@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { expect, test } from "@/fixtures";
 import {
   cardAt,
   cardCount,
@@ -9,7 +9,7 @@ import {
   slot,
   tapStock,
   topCard,
-} from "./helpers";
+} from "@/pages/game.page";
 
 /**
  * US-01, US-02, US-03, US-04, US-05. Tapping, dragging and the keyboard get the same

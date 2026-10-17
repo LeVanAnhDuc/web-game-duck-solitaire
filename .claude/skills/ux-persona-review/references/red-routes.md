@@ -85,7 +85,7 @@
 - **entry:** `http://localhost:3000/?van=2`
   *(ván số 2: nước đi hợp lệ đầu tiên của thế bài này đi từ một cột bài thẳng lên một
   chồng đích còn trống, nghĩa là có một con Át ngửa sẵn ngay khi chia xong — nguồn:
-  `client/e2e/fixtures/winnable.json`, `seed: 2` và phần tử đầu của `moves`)*
+  `automation-testing/src/data/files/winnable.json`, `seed: 2` và phần tử đầu của `moves`)*
 - **done_when:** Có ít nhất một lá nằm trên một trong bốn chồng đích, và người chơi nhận
   ra cách đưa lá lên đó **rẻ hơn** cách chạm-nguồn-rồi-chạm-đích thông thường.
 - **min_steps:** 1 — một cú chạm lên lá
@@ -183,7 +183,7 @@
 - **status:** excluded
 - **why_excluded:** Không có đường nào vào trạng thái "hết lá úp" ngoài việc chơi thật.
   Ván thắng đã đo được của project dài **573 nước** (`docs/04-state/backlog.md` §Đang làm,
-  chạy trong `client/e2e/win.spec.ts`), gấp hơn mười bốn lần trần 40 hành động của một phiên
+  chạy trong `automation-testing/src/tests/e2e/win/replay.e2e.ts`), gấp hơn mười bốn lần trần 40 hành động của một phiên
   persona. Persona sẽ hết kiên nhẫn từ lâu trước khi nút hoàn tất bật lên, và báo cáo sẽ
   nói về sức bền của persona chứ không nói gì về màn mừng thắng. **`win.spec.ts` đã phủ
   chặng này** — đó là phép đo đúng cho nó. Mở lại khi nào có cách nạp thẳng một thế bài
