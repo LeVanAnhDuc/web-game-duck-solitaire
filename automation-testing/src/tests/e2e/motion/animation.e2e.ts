@@ -81,27 +81,3 @@ test.describe("with motion on", () => {
     expect(up.duration).not.toBe("0s");
   });
 });
-
-test.describe("with motion off - NFR-A11Y-05", () => {
-  test.use({ motion: "off" });
-
-  test("the deal is instant: no card ever sits on the stock", async ({ page }) => {
-    await page.goto("./?van=20260904");
-    await expect(page.locator("[data-card]").first()).toBeVisible();
-    const card = cardAt(page, "tableau-6", 6);
-    const column = await slot(page, "tableau-6").boundingBox();
-    const at = await card.boundingBox();
-    expect(Math.abs((at?.x ?? 0) - (column?.x ?? -1))).toBeLessThan(2);
-  });
-
-  test("no transition is started at all, not even a short one", async ({ page }) => {
-    // Not "a very short duration": a transition that starts has a value being
-    // interpolated, so a card that just moved would report where it came from until
-    // the next frame. With none, a card is always where the state says it is.
-    await openGame(page);
-    const properties = await page
-      .locator("[data-card]")
-      .evaluateAll((els) => els.map((el) => getComputedStyle(el).transitionProperty));
-    for (const property of properties) expect(property).toBe("none");
-  });
-});

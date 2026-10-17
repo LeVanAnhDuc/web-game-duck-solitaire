@@ -15,7 +15,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 | `client/e2e/win.spec.ts` | `src/tests/e2e/win/replay.e2e.ts` (+ TC-WIN-002/003 mới); mô hình số lá → `src/utils/pile-counts.ts`, fixture → `src/data/winnable.ts` | đã chuẩn hóa |
 | `client/e2e/motion.spec.ts` | `src/tests/e2e/motion/animation.e2e.ts` | chưa chuẩn hóa |
 | `client/e2e/layout.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` | chưa chuẩn hóa |
-| `client/e2e/ux-feedback.spec.ts` | `src/tests/e2e/accessibility/feedback.e2e.ts` | chưa chuẩn hóa |
+| `client/e2e/ux-feedback.spec.ts` | `src/tests/e2e/accessibility/screen-reader.e2e.ts` (F-01/02/03, đổi tên từ `feedback.e2e.ts`); F-04/05/10 → `deal`, F-06/07 → `keyboard`, F-09 → `draw-mode` | đã chuẩn hóa |
 | `client/e2e/ducker-id-sign-in.spec.ts` | `src/tests/e2e/ducker-id/sign-in.e2e.ts` (cờ bật, project `app-auth`) + `ducker-id/flag-off.e2e.ts` (cờ tắt) | chưa chuẩn hóa |
 | `client/playwright.config.ts` (4 viewport, 2 webServer) | `playwright.config.ts` | gộp |
 
