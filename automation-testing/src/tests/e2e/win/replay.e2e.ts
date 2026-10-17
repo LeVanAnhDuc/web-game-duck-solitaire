@@ -1,132 +1,120 @@
-import type { Page } from "@playwright/test";
-import { expect, test } from "@/fixtures";
-import fixture from "@/data/files/winnable.json";
-import { cardAt, cardCount, slot, tapStock, type PileKey } from "@/pages/game.page";
+import { test, expect } from "@/fixtures";
+import { copy } from "@/data/copy";
+import { WINNABLE } from "@/data/winnable";
+import { FOUNDATIONS, type GamePage, type PileKey } from "@/pages/game.page";
+import { applyToCounts, pileKeyOf } from "@/utils/pile-counts";
 
-/**
- * FR-08: one deal played all the way to the win screen, through the real UI.
- *
- * Roughly a fifth of Klondike deals cannot be won at all and the winnable ones are not
- * winnable by playing greedily, so this line was found by search - see
- * ../client/scripts/find-winnable.ts. The fixture stops at the first position where every card is
- * face up, and the game's own "Hoàn tất" plays the rest: that is the button's whole
- * purpose, and it keeps the replay to something a browser test can afford.
- *
- * It replays by DRAGGING, and that is now required rather than a preference. One tap
- * puts a card up (FR-14), so clicking a source card that has a foundation home plays a
- * move of its own and the scripted line goes out of step immediately. Dragging says
- * exactly one thing. It also means this test covers a full game played with the drag
- * gesture, which is what the drag half of FR-04 was missing.
- *
- * It runs on one viewport. The point is the rules and the win path, and neither varies
- * by screen width; the layout suite is what covers the widths.
- */
+// FR-06 · FR-08 · US-03 · invariant #9. One known winnable deal (src/data/winnable.ts) played through the real UI up to
+// the first position where every card is face up; "Hoàn tất" does the rest.
+//
+// It replays by DRAGGING. One tap puts a card up (FR-14), so tapping a source card that has a foundation home would
+// play a move of its own and the scripted line would go out of step; a drop names exactly one pile.
 
-type PileRef = { kind: string; index?: number };
-type Move =
-  | { type: "draw" }
-  | { type: "recycle" }
-  | { type: "move"; from: PileRef; to: PileRef; count: number };
-
-const pileOf = (pile: { kind: string; index?: number }): PileKey =>
-  (pile.index === undefined ? pile.kind : `${pile.kind}-${pile.index}`) as PileKey;
-
-async function dragMove(page: Page, move: Extract<Move, { type: "move" }>) {
-  const from = pileOf(move.from);
-  const count = await cardCount(page, from);
-  // The run being lifted is the last `count` cards, so its lowest card is the one to
-  // grab - everything above it comes along.
-  const source = cardAt(page, from, count - move.count);
-  // A mouse drag is raw coordinates, and raw coordinates do not scroll. Late in a game
-  // a column is long enough to run past the fold, and a drag aimed below it goes
-  // nowhere at all - which is what made this replay stop at move 432.
-  await source.scrollIntoViewIfNeeded();
-  const start = await source.boundingBox();
-  const target = await slot(page, pileOf(move.to)).boundingBox();
-  if (!start || !target) throw new Error(`no box for ${from} -> ${pileOf(move.to)}`);
-
-  // Aim at the top strip of the card: cards in a column overlap, so a covered card's
-  // centre is under the card above it. That is where a player aims too.
-  await page.mouse.move(start.x + start.width / 2, start.y + 8);
-  await page.mouse.down();
-  // The first step crosses the 6px threshold that separates a tap from a drag.
-  await page.mouse.move(start.x + start.width / 2 + 12, start.y + 24);
-  await page.mouse.move(
-    target.x + target.width / 2,
-    target.y + Math.min(target.height / 2, 24),
-    { steps: 3 },
-  );
-  await page.mouse.up();
+/** Plays the fixture line, checking every pile's count against the black-box model after each move. */
+async function replayToAllFaceUp(gamePage: GamePage, beforeLast?: () => Promise<void>): Promise<void> {
+  let expected: Record<string, number> = await gamePage.pileCounts();
+  for (const [i, move] of WINNABLE.moves.entries()) {
+    if (i === WINNABLE.moves.length - 1 && beforeLast) await beforeLast();
+    try {
+      if (move.type === "move") {
+        const from = pileKeyOf(move.from) as PileKey;
+        const count = await gamePage.cardCount(from);
+        // The run being lifted is the last `count` cards: grab its lowest card and the rest come along.
+        await gamePage.dragTo(gamePage.cardAt(from, count - move.count), pileKeyOf(move.to) as PileKey);
+      } else {
+        await gamePage.tapStock();
+      }
+    } catch (error) {
+      throw new Error(`move ${i} of ${WINNABLE.moves.length} (${JSON.stringify(move)}) failed: ${String(error)}`);
+    }
+    expected = applyToCounts(expected, move, WINNABLE.drawMode);
+    expect(await gamePage.pileCounts(), `move ${i} (${JSON.stringify(move)})`).toEqual(expected);
+  }
 }
 
-test.describe("a game played to the end - FR-08", () => {
+const onFoundations = async (gamePage: GamePage) =>
+  (await Promise.all(FOUNDATIONS.map((f) => gamePage.cardCount(f)))).reduce((a, b) => a + b, 0);
+
+test.describe("một ván thắng được, chơi tới cuối", () => {
   test.setTimeout(600_000);
-  // Tall enough for the whole board, including a column of thirteen. This test is
-  // about the rules and the win path; the widths are layout.spec.ts's job.
+  // Tall enough for the whole board, including a column of thirteen.
   test.use({ viewport: { width: 1440, height: 1600 } });
 
-  test("replaying a known solution reaches the win screen", async ({ page }) => {
-    await page.goto(`./?van=${fixture.seed}`);
-    await expect(page.locator("[data-card]").first()).toBeVisible();
+  test("\"Hoàn tất\" bật đúng lúc lá úp cuối cùng lật lên và đưa ván tới màn thắng", { tag: ["@TC-WIN-001", "@smoke"] }, async ({
+    gamePage,
+  }) => {
+    await gamePage.goto(WINNABLE.seed);
+    await expect(gamePage.autoCompleteButton()).toHaveAttribute("aria-disabled", "true");
 
-    const autoComplete = page.getByRole("button", { name: "Hoàn tất" });
-    // Nothing is finishable at the deal: every column still hides cards.
-    await expect(autoComplete).toHaveAttribute("aria-disabled", "true");
+    await replayToAllFaceUp(gamePage, async () => {
+      // One move before the end a face-down card is still on the board: the button is still off.
+      await expect(gamePage.autoCompleteButton()).toHaveAttribute("aria-disabled", "true");
+    });
+    await expect(gamePage.autoCompleteButton()).toHaveAttribute("aria-disabled", "false");
+    const upBefore = await onFoundations(gamePage);
 
-    // A black-box reference: every move says exactly which piles change and by how many, so pile counts are
-    // predicted from the fixture alone (no import of the game's engine). A drag that quietly did nothing is caught
-    // on the move it happened, not four hundred moves later where it is unreadable.
-    const PILES: PileKey[] = [
-      "stock",
-      "waste",
-      ...([0, 1, 2, 3] as const).map((i) => `foundation-${i}` as PileKey),
-      ...([0, 1, 2, 3, 4, 5, 6] as const).map((i) => `tableau-${i}` as PileKey),
-    ];
-    const expected = new Map<PileKey, number>();
-    for (const key of PILES) expected.set(key, await cardCount(page, key));
+    await gamePage.autoCompleteButton().click();
 
-    const moves = fixture.moves as unknown as Move[];
-    for (let i = 0; i < moves.length; i++) {
-      const move = moves[i]!;
-      try {
-        if (move.type === "draw" || move.type === "recycle") await tapStock(page);
-        else await dragMove(page, move);
-      } catch (error) {
-        throw new Error(
-          `move ${i} of ${moves.length} (${JSON.stringify(move)}) failed: ${String(error)}`,
-        );
-      }
-
-      if (move.type === "draw") {
-        const n = Math.min(fixture.drawMode, expected.get("stock")!);
-        expected.set("stock", expected.get("stock")! - n);
-        expected.set("waste", expected.get("waste")! + n);
-      } else if (move.type === "recycle") {
-        expected.set("stock", expected.get("waste")!);
-        expected.set("waste", 0);
-      } else {
-        const from = pileOf(move.from);
-        const to = pileOf(move.to);
-        expected.set(from, expected.get(from)! - move.count);
-        expected.set(to, expected.get(to)! + move.count);
-      }
-      for (const pile of PILES) {
-        expect(
-          await cardCount(page, pile),
-          `move ${i} (${JSON.stringify(move)}): ${pile} is wrong`,
-        ).toBe(expected.get(pile));
-      }
+    const dialog = gamePage.winDialog.root();
+    await expect(dialog).toBeVisible({ timeout: 60_000 });
+    for (const f of FOUNDATIONS) await expect(gamePage.cardsIn(f)).toHaveCount(13);
+    // Each foundation is one suit, Át at the bottom and Già on top.
+    for (const [i, f] of FOUNDATIONS.entries()) {
+      const suit = ["Bích", "Cơ", "Rô", "Tép"][i]!;
+      await expect(gamePage.cardAt(f, 0)).toHaveAttribute("aria-label", `${suit} Át`);
+      await expect(gamePage.cardAt(f, 12)).toHaveAttribute("aria-label", `${suit} Già`);
     }
 
-    // Every card is face up now, which is exactly when the button turns on.
-    await expect(autoComplete).not.toHaveAttribute("aria-disabled", "true");
-    await autoComplete.click();
+    // "Xong ván trong N nước đi.": the scripted line plus at least one move per card still to go up.
+    await expect(dialog).toContainText(copy.win.title);
+    const body = (await dialog.textContent()) ?? "";
+    const moves = Number(body.match(/Xong ván trong (\d+) nước đi\./)?.[1]);
+    expect(moves).toBeGreaterThanOrEqual(WINNABLE.moves.length + (52 - upBefore));
+    await expect(dialog).toContainText(copy.win.body(moves));
+  });
 
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible({ timeout: 60_000 });
-    await expect(dialog).toContainText("Thắng rồi!");
+  test("hoàn lại hay ván mới giữa chuỗi tự hoàn tất thì chuỗi dừng ngay", { tag: ["@TC-WIN-002"] }, async ({ page, gamePage }) => {
+    // The chain plays one move every 110ms on a window timer; the fake clock decides exactly how many it gets.
+    await page.clock.install();
+    await gamePage.goto(WINNABLE.seed);
+    await replayToAllFaceUp(gamePage);
+    const start = await onFoundations(gamePage);
 
-    await dialog.getByRole("button", { name: "Chơi ván mới" }).click();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await gamePage.autoCompleteButton().click();
+    await page.clock.runFor(400);
+    const running = await onFoundations(gamePage);
+    expect(running).toBeGreaterThan(start);
+
+    await gamePage.undoButton().click();
+    const afterUndo = await gamePage.snapshot();
+    await page.clock.runFor(3000);
+    // Stopped: nothing else moved, and the game is not won behind the player's back.
+    expect(await gamePage.snapshot()).toEqual(afterUndo);
+    await expect(gamePage.winDialog.root()).toHaveCount(0);
+
+    // Started again, then a new deal mid-chain: the chain must not carry on into the new game.
+    await gamePage.autoCompleteButton().click();
+    await page.clock.runFor(400);
+    await gamePage.newGameButton().click();
+    const dealt = await gamePage.snapshot();
+    await page.clock.runFor(3000);
+    expect(await gamePage.snapshot()).toEqual(dealt);
+    await expect(gamePage.undoButton()).toHaveAttribute("aria-disabled", "true");
+  });
+
+  test("\"Chơi ván mới\" trên màn thắng chia một ván khác", { tag: ["@TC-WIN-003"] }, async ({ gamePage }) => {
+    await gamePage.goto(WINNABLE.seed);
+    await replayToAllFaceUp(gamePage);
+    await gamePage.autoCompleteButton().click();
+    await expect(gamePage.winDialog.root()).toBeVisible({ timeout: 60_000 });
+    await expect(gamePage.winDialog.root()).toBeFocused();
+
+    await gamePage.winDialog.playAgainButton().click();
+
+    await expect(gamePage.winDialog.root()).toHaveCount(0);
+    await expect(gamePage.seedLabel(WINNABLE.seed)).toHaveCount(0);
+    for (const f of FOUNDATIONS) await expect(gamePage.cardsIn(f)).toHaveCount(0);
+    await expect(gamePage.cardsIn("stock")).toHaveCount(24);
+    await expect(gamePage.undoButton()).toHaveAttribute("aria-disabled", "true");
   });
 });

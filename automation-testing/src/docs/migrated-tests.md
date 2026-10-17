@@ -12,7 +12,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 | `client/e2e/fixtures/winnable.json` | `src/data/files/winnable.json` | đã chuẩn hóa |
 | `client/e2e/smoke.spec.ts` | `src/tests/e2e/deal/deal.e2e.ts` (chia bài, cùng số → cùng ván, `?van` hỏng); aria-owns → `accessibility`, console + storage → `privacy` | đã chuẩn hóa |
 | `client/e2e/play.spec.ts` | tách theo module rồi xoá file gom: "drawing from the stock" + "moving cards" → `moves/tap.e2e.ts`, `stock.e2e.ts`, `rules.e2e.ts`, `drag.e2e.ts`; "one tap" + "two taps" → `quick-moves/taps.e2e.ts`; "undo and restart" → `undo-restart/undo.e2e.ts`; "changing draw mode" → `draw-mode/confirm.e2e.ts`; "keyboard play" → `keyboard/keyboard.e2e.ts` | đã chuẩn hóa |
-| `client/e2e/win.spec.ts` | `src/tests/e2e/win/replay.e2e.ts` | chưa chuẩn hóa |
+| `client/e2e/win.spec.ts` | `src/tests/e2e/win/replay.e2e.ts` (+ TC-WIN-002/003 mới); mô hình số lá → `src/utils/pile-counts.ts`, fixture → `src/data/winnable.ts` | đã chuẩn hóa |
 | `client/e2e/motion.spec.ts` | `src/tests/e2e/motion/animation.e2e.ts` | chưa chuẩn hóa |
 | `client/e2e/layout.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` | chưa chuẩn hóa |
 | `client/e2e/ux-feedback.spec.ts` | `src/tests/e2e/accessibility/feedback.e2e.ts` | chưa chuẩn hóa |
