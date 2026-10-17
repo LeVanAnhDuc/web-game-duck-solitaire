@@ -26,7 +26,7 @@
 | [`ux-reviews/2026-09-12-duck-solitaire/log/p28-RR-08-mai.md`](ux-reviews/2026-09-12-duck-solitaire/log/p28-RR-08-mai.md) | — | — | — |
 | [`ux-reviews/2026-09-12-duck-solitaire/log/p30-blind-khoa.md`](ux-reviews/2026-09-12-duck-solitaire/log/p30-blind-khoa.md) | — | — | — |
 | [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 12 ADR | mỗi quyết định kỹ thuật |
-| [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
+| [`../client/.env.example`](../client/.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
 <!-- END:auto -->
 
 🔴 chưa điền · 🟡 một phần · 🟢 đủ · ⚪ chưa áp dụng

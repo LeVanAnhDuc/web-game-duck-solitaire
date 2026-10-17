@@ -49,26 +49,31 @@ choice of target.
 
 ## Getting started
 
+The app lives in [`client/`](client/); every command below runs from there.
+
 ```bash
+cd client
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
 There is nothing to configure — the game reads no required environment variables. See
-[`.env.example`](.env.example) for the optional ones: the deploy workflow's base path, and the
+[`client/.env.example`](client/.env.example) for the optional ones: the deploy workflow's base path, and the
 Ducker ID sign-in flag.
 
-To try the optional Ducker ID sign-in locally, copy `.env.example` to `.env`, set
+To try the optional Ducker ID sign-in locally, copy `client/.env.example` to `client/.env`, set
 `NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN=true` and `NEXT_PUBLIC_DUCKER_CLIENT_ID`, register
 `http://localhost:<port>/` as a redirect URI at Ducker ID, and add that origin to its
 `CORS_ORIGINS`. The deployed build never has it (ADR-0012).
 
 ## Commands
 
+Run from `client/`.
+
 | Command | Does |
 | --- | --- |
 | `pnpm dev` | Dev server |
-| `pnpm build` | Static export into `out/` |
+| `pnpm build` | Static export into `client/out/` |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
 | `pnpm test` | Vitest — rules and components |
@@ -88,9 +93,9 @@ the exported site, because that is what GitHub Pages serves.
 Three layers, arrows only pointing down:
 
 ```
-src/app + src/components   React, DOM, Tailwind, pointer and keyboard events
-src/hooks/useGame          useReducer · Move[] history · undo
-src/game                   plain TypeScript — the Klondike rules. No React.
+client/src/app + views     React, DOM, Tailwind, pointer and keyboard events
+client/src/hooks/useGame   useReducer · Move[] history · undo
+client/src/game            plain TypeScript — the Klondike rules. No React.
 ```
 
 `src/game/` never imports React or touches the browser, so the rules are tested

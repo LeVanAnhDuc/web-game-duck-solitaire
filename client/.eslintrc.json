@@ -15,6 +15,10 @@
   },
   "overrides": [
     {
+      "files": ["e2e/**/*.ts"],
+      "rules": { "react-hooks/rules-of-hooks": "off" }
+    },
+    {
       "files": ["src/game/**/*.ts"],
       "excludedFiles": ["src/game/**/*.test.ts"],
       "rules": {
