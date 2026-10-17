@@ -14,8 +14,19 @@
 | [`03-design/invariants.md`](03-design/invariants.md) | Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết… | 🟢 đủ | phát hiện một bất biến mới — thường là ngay sau khi ai đó … |
 | [`04-state/backlog.md`](04-state/backlog.md) | Đang làm gì, tiếp theo làm gì, và đang nợ những gì? | 🟢 đủ | bắt đầu/kết thúc một việc · brainstorm ra việc mới · cố ý … |
 | [`design-system/solitaire/MASTER.md`](design-system/solitaire/MASTER.md) | Màu nào, chữ nào, khoảng cách nào — và giá trị đó lấy ở đâ… | 🟢 đủ | thêm một vai trò màu mới · đổi thang chữ hoặc thang khoảng… |
+| [`ux-reviews/2026-09-12-duck-solitaire.md`](ux-reviews/2026-09-12-duck-solitaire.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/dan-chung-dieu-phoi.md`](ux-reviews/2026-09-12-duck-solitaire/log/dan-chung-dieu-phoi.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/ghi-chu-lan-chay.md`](ux-reviews/2026-09-12-duck-solitaire/log/ghi-chu-lan-chay.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p21-RR-01-hang.md`](ux-reviews/2026-09-12-duck-solitaire/log/p21-RR-01-hang.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p22-RR-02-ong-tam.md`](ux-reviews/2026-09-12-duck-solitaire/log/p22-RR-02-ong-tam.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p23-RR-03-ong-tam.md`](ux-reviews/2026-09-12-duck-solitaire/log/p23-RR-03-ong-tam.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p24-RR-05-thuy.md`](ux-reviews/2026-09-12-duck-solitaire/log/p24-RR-05-thuy.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p26-RR-06-dung.md`](ux-reviews/2026-09-12-duck-solitaire/log/p26-RR-06-dung.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p27-RR-07-mai.md`](ux-reviews/2026-09-12-duck-solitaire/log/p27-RR-07-mai.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p28-RR-08-mai.md`](ux-reviews/2026-09-12-duck-solitaire/log/p28-RR-08-mai.md) | — | — | — |
+| [`ux-reviews/2026-09-12-duck-solitaire/log/p30-blind-khoa.md`](ux-reviews/2026-09-12-duck-solitaire/log/p30-blind-khoa.md) | — | — | — |
 | [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 12 ADR | mỗi quyết định kỹ thuật |
-| [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
+| [`../client/.env.example`](../client/.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
 <!-- END:auto -->
 
 🔴 chưa điền · 🟡 một phần · 🟢 đủ · ⚪ chưa áp dụng

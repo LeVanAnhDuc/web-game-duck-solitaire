@@ -49,48 +49,62 @@ choice of target.
 
 ## Getting started
 
+The app lives in [`client/`](client/); every command below runs from there.
+
 ```bash
+cd client
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
 There is nothing to configure — the game reads no required environment variables. See
-[`.env.example`](.env.example) for the optional ones: the deploy workflow's base path, and the
+[`client/.env.example`](client/.env.example) for the optional ones: the deploy workflow's base path, and the
 Ducker ID sign-in flag.
 
-To try the optional Ducker ID sign-in locally, copy `.env.example` to `.env`, set
+To try the optional Ducker ID sign-in locally, copy `client/.env.example` to `client/.env`, set
 `NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN=true` and `NEXT_PUBLIC_DUCKER_CLIENT_ID`, register
 `http://localhost:<port>/` as a redirect URI at Ducker ID, and add that origin to its
 `CORS_ORIGINS`. The deployed build never has it (ADR-0012).
 
 ## Commands
 
+Run from `client/`.
+
 | Command | Does |
 | --- | --- |
 | `pnpm dev` | Dev server |
-| `pnpm build` | Static export into `out/` |
+| `pnpm build` | Static export into `client/out/` |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint, including the guard that keeps `src/game/` framework-free |
 | `pnpm test` | Vitest — rules and components |
-| `pnpm test:e2e` | Playwright against the built static export, at four viewports. Needs `pnpm build` **and** `pnpm build:e2e-auth` first (the sign-in spec uses the flag-on export) |
-| `pnpm build:e2e-auth` | Flag-on build into `out-auth/` (fake issuer) for the sign-in e2e spec |
+| `pnpm build:e2e-auth` | Flag-on build into `client/out-auth/` (fake issuer) for the regression suite's sign-in module |
 | `pnpm check:bundle` | First-load JS budget, measured from the exported HTML (NFR-PERF-05) |
 | `pnpm check:audit` | Lists open Dependabot alerts, failing on high or above. Local only — `GITHUB_TOKEN` cannot read alerts, so CI gates on the dependency diff instead |
 | `pnpm release:next` | Which tag the next release would get, and why |
 | `pnpm release:notes v1.1.0` | What that release's notes would say |
 | `pnpm format` | Prettier |
 
-`pnpm test:e2e` and `pnpm check:bundle` need `pnpm build` to have run first: both look at
-the exported site, because that is what GitHub Pages serves.
+`pnpm check:bundle` needs `pnpm build` to have run first: it looks at the exported site,
+because that is what GitHub Pages serves.
+
+The end-to-end regression suite is its own package, [`automation-testing/`](automation-testing/):
+requirements, test cases, defects and Playwright specs per module. It builds and serves the
+static export itself:
+
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test
+```
 
 ## How it is put together
 
 Three layers, arrows only pointing down:
 
 ```
-src/app + src/components   React, DOM, Tailwind, pointer and keyboard events
-src/hooks/useGame          useReducer · Move[] history · undo
-src/game                   plain TypeScript — the Klondike rules. No React.
+client/src/app + views     React, DOM, Tailwind, pointer and keyboard events
+client/src/hooks/useGame   useReducer · Move[] history · undo
+client/src/game            plain TypeScript — the Klondike rules. No React.
 ```
 
 `src/game/` never imports React or touches the browser, so the rules are tested
@@ -103,12 +117,12 @@ place a position changes.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Two parallel jobs: lint + typecheck + unit tests, and build + first-load-JS budget + the end-to-end suite at four viewports. Pull requests get a third that fails on a newly introduced dependency with a high-or-above advisory (NFR-SEC-05) |
-| [`deploy.yml`](.github/workflows/deploy.yml) | push to `main` | Rebuilds with `NEXT_PUBLIC_BASE_PATH=/<repo>` and publishes `out/` to GitHub Pages. It re-runs the tests rather than trusting a green run it cannot see |
+| [`ci.yml`](.github/workflows/ci.yml) | every pull request and push to `main` | Two parallel jobs: lint + typecheck + unit tests in `client/`, and build + first-load-JS budget + the [`automation-testing/`](automation-testing/) regression suite (typecheck, traceability check, every module). Pull requests get a third that fails on a newly introduced dependency with a high-or-above advisory (NFR-SEC-05) |
+| [`deploy.yml`](.github/workflows/deploy.yml) | push to `main` | Rebuilds with `NEXT_PUBLIC_BASE_PATH=/<repo>` and publishes `client/out/` to GitHub Pages. It re-runs the tests rather than trusting a green run it cannot see |
 | [`release.yml`](.github/workflows/release.yml) | push to `main` | Gates on the tests, works out the next version, composes the notes, and publishes a GitHub release |
 
-The end-to-end suite runs against `out/` through `scripts/serve.mjs` rather than a dev
-server, because a static export is what gets deployed and a dev server is not it.
+The regression suite runs against `client/out/` through `client/scripts/serve.mjs` rather than
+a dev server, because a static export is what gets deployed and a dev server is not it.
 
 ## Releases and versioning
 

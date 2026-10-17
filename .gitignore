@@ -4,18 +4,19 @@
 .env.*
 !.env.example
 
-# Toolchain
-/node_modules/
-/.next/
-/out/
-/out-auth/
-/dist/
+# Toolchain (the app lives in client/; automation-testing/ has its own node_modules)
+node_modules/
+.next/
+client/out/
+client/out-auth/
+client/out-flagoff/
+dist/
 *.tsbuildinfo
 
-# Test output
-/test-results/
-/playwright-report/
-/playwright/.cache/
+# Test output (automation-testing/ and any Playwright run)
+test-results/
+playwright-report/
+playwright/.cache/
 
 # git worktrees live here (feature-flow section 3); they are checkouts, not content
 /.worktrees/
