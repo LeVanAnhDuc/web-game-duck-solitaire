@@ -192,7 +192,7 @@ export class GamePage extends BasePage {
   }
 
   drawModeSelect(): Locator {
-    return this.page.getByLabel(copy.toolbar.drawMode);
+    return this.page.getByLabel(copy.toolbar.drawMode, { exact: true });
   }
 
   // ── actions ─────────────────────────────────────────────────────────────
@@ -294,6 +294,15 @@ export class DrawModeDialog {
 
   acceptButton(): Locator {
     return this.root().getByRole("button", { name: copy.confirm.accept, exact: true });
+  }
+
+  /**
+   * Fires the button's click straight at it. Used where the point is what accepting DOES: at some widths the cards are
+   * drawn over the dialog so the pointer cannot reach the button (BUG-DRAWMODE-01), and Enter/Space on it are eaten by
+   * the board's key handler (BUG-DRAWMODE-02). Those two are tested on their own.
+   */
+  async accept(): Promise<void> {
+    await this.acceptButton().dispatchEvent("click");
   }
 }
 

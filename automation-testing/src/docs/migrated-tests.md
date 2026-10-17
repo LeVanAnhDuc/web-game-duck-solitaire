@@ -11,7 +11,7 @@ làm project: logic chạy một lần, các khẳng định phụ thuộc bề 
 | `client/e2e/fixtures.ts` | `src/fixtures/motion.fixture.ts` (gộp vào `mergeTests`) | đã chuẩn hóa |
 | `client/e2e/fixtures/winnable.json` | `src/data/files/winnable.json` | đã chuẩn hóa |
 | `client/e2e/smoke.spec.ts` | `src/tests/e2e/deal/deal.e2e.ts` (chia bài, cùng số → cùng ván, `?van` hỏng); aria-owns → `accessibility`, console + storage → `privacy` | đã chuẩn hóa |
-| `client/e2e/play.spec.ts` | `src/tests/e2e/moves/tap-and-drag.e2e.ts`; "drawing from the stock" + "moving cards" → `moves/tap.e2e.ts`, `stock.e2e.ts`, `rules.e2e.ts`, `drag.e2e.ts` ; "one tap" + "two taps" → `quick-moves/taps.e2e.ts` ; "undo and restart" → `undo-restart/undo.e2e.ts` | một phần (moves, quick-moves, undo-restart xong) |
+| `client/e2e/play.spec.ts` | `src/tests/e2e/moves/tap-and-drag.e2e.ts`; "drawing from the stock" + "moving cards" → `moves/tap.e2e.ts`, `stock.e2e.ts`, `rules.e2e.ts`, `drag.e2e.ts` ; "one tap" + "two taps" → `quick-moves/taps.e2e.ts` ; "undo and restart" → `undo-restart/undo.e2e.ts` ; "changing draw mode" → `draw-mode/confirm.e2e.ts` | một phần (còn "keyboard play") |
 | `client/e2e/win.spec.ts` | `src/tests/e2e/win/replay.e2e.ts` | chưa chuẩn hóa |
 | `client/e2e/motion.spec.ts` | `src/tests/e2e/motion/animation.e2e.ts` | chưa chuẩn hóa |
 | `client/e2e/layout.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` | chưa chuẩn hóa |
@@ -25,7 +25,8 @@ sánh — gói này không import code app, nên mốc được đổi thành m�
 chồng nào đổi bao nhiêu lá.
 
 Chạy lần đầu sau khi dời (2026-10-18, Windows, CLIENT_PREBUILT=1): 53/54 xanh. Đỏ: "changing draw mode asks first › it
-redeals only after the player agrees" (hết 30 giây) — để `/write-tests draw-mode` xử lý.
+redeals only after the player agrees" (hết 30 giây) — `/write-tests draw-mode` xác định là bug của app (BUG-DRAWMODE-01:
+lá bài đè lên hộp thoại), không phải lỗi script.
 
 Unit + component test (vitest, `client/src/**/*.test.ts(x)`) ở lại `client/`: chúng thuộc về code.
 

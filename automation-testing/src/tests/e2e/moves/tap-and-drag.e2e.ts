@@ -68,28 +68,3 @@ test.describe("keyboard play - FR-12", () => {
     await expect(cardsIn(page, "tableau-6")).toHaveCount(before + 1);
   });
 });
-
-test.describe("changing draw mode asks first - US-05", () => {
-  test("it redeals only after the player agrees", async ({ page }) => {
-    await openGame(page);
-    await tapStock(page);
-    await page.getByLabel("Chế độ rút").selectOption("3");
-
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await dialog.getByRole("button", { name: "Giữ ván hiện tại" }).click();
-    await expect(cardsIn(page, "waste")).toHaveCount(1);
-
-    await page.getByLabel("Chế độ rút").selectOption("3");
-    await page.getByRole("dialog").getByRole("button", { name: "Đổi và chia lại" }).click();
-    await expect(cardsIn(page, "waste")).toHaveCount(0);
-    await tapStock(page);
-    await expect(cardsIn(page, "waste")).toHaveCount(3);
-  });
-
-  test("no dialog before the first move, because nothing would be lost", async ({ page }) => {
-    await openGame(page);
-    await page.getByLabel("Chế độ rút").selectOption("3");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-  });
-});

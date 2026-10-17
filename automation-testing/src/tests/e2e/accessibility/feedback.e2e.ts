@@ -109,28 +109,6 @@ test.describe("F-07 · the cursor follows the card", () => {
   });
 });
 
-test.describe("F-09 · the confirm dialog can be escaped", () => {
-  test("Escape closes it and keeps the game", async ({ page }) => {
-    await openGame(page);
-    await tapStock(page); // a move, so changing draw mode has something to warn about
-
-    await page.getByLabel("Chế độ rút").selectOption("3");
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-
-    // Focus is inside the dialog, on the safe choice - not left behind it.
-    await expect(page.getByRole("button", { name: "Giữ ván hiện tại" })).toBeFocused();
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0);
-
-    // Escape means "keep my game": the mode is unchanged and so is the board.
-    await expect(page.getByLabel("Chế độ rút")).toHaveValue("1");
-    await expect(page.getByLabel("Chế độ rút")).toBeFocused();
-    await expect(button(page, "Hoàn lại")).toHaveAttribute("aria-disabled", "false");
-  });
-});
-
 test.describe("the board still works", () => {
   test("keeps its accessible name and its seven columns", async ({ page }) => {
     await openGame(page);
