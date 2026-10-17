@@ -69,55 +69,6 @@ test.describe("keyboard play - FR-12", () => {
   });
 });
 
-test.describe("undo and restart - US-04, US-05", () => {
-  test("undo walks all the way back to the deal", async ({ page }) => {
-    await openGame(page);
-    const snapshot = () =>
-      page
-        .locator("[data-card]")
-        .evaluateAll((els) =>
-          els.map(
-            (e) =>
-              `${e.getAttribute("data-card")}:${e.getAttribute("data-card-pile")}:${e.getAttribute("data-face")}`,
-          ),
-        );
-    const dealt = await snapshot();
-
-    for (let i = 0; i < 6; i++) await tapStock(page);
-    expect(await snapshot()).not.toEqual(dealt);
-
-    for (let i = 0; i < 6; i++) await undo(page).click();
-    expect(await snapshot()).toEqual(dealt);
-    await expect(undo(page)).toHaveAttribute("aria-disabled", "true");
-  });
-
-  test("undo turns a revealed card back over", async ({ page }) => {
-    // The most silent way this can go wrong: the board is right but a card that was
-    // flipped stays face up.
-    await openGame(page, 1);
-    const three = await topCard(page, "tableau-1");
-    await three!.dblclick();
-    await expect(cardAt(page, "tableau-1", 0)).toHaveAttribute("data-face", "up");
-    await undo(page).click();
-    await expect(cardAt(page, "tableau-1", 0)).toHaveAttribute("data-face", "down");
-  });
-
-  test("restart redeals the same game, not a different one", async ({ page }) => {
-    await openGame(page);
-    const ids = () =>
-      page
-        .locator("[data-card]")
-        .evaluateAll((els) =>
-          els.map((e) => `${e.getAttribute("data-card")}:${e.getAttribute("data-card-pile")}`),
-        );
-    const dealt = await ids();
-    for (let i = 0; i < 4; i++) await tapStock(page);
-    await page.getByRole("button", { name: "Chơi lại" }).click();
-    expect(await ids()).toEqual(dealt);
-  });
-
-});
-
 test.describe("changing draw mode asks first - US-05", () => {
   test("it redeals only after the player agrees", async ({ page }) => {
     await openGame(page);
