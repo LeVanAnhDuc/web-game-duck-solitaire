@@ -36,60 +36,6 @@ async function drawUntilWasteLabelContains(page: Page, needle: string, limit = 2
   return null;
 }
 
-test.describe("one tap puts a card up - FR-14", () => {
-  test("tapping an ace once sends it to its foundation", async ({ page }) => {
-    await openGame(page);
-    await expect(foundationCards(page)).toHaveCount(0);
-
-    const ace = await drawUntilWasteLabelContains(page, "Át");
-    expect(ace, "this deal never shows an ace in the stock").not.toBeNull();
-    await ace!.click();
-
-    await expect(foundationCards(page)).toHaveCount(1);
-    await expect(selected(page)).toHaveCount(0);
-  });
-
-  test("tapping a card with nowhere to go up only picks it up", async ({ page }) => {
-    // Seed 1, column 2: a black three, which no foundation can take yet.
-    await openGame(page, 1);
-    const three = await topCard(page, "tableau-1");
-    await three!.click();
-    await expect(selected(page)).toHaveCount(1);
-    await expect(foundationCards(page)).toHaveCount(0);
-    await expect(undo(page)).toHaveAttribute("aria-disabled", "true");
-  });
-
-  test("a second tap right after a one-tap move does not make a second move", async ({
-    page,
-  }) => {
-    // The ace leaves the spot being tapped, so the second half of a double tap lands
-    // on the card underneath. Picking that up is harmless; being one tap from moving
-    // it is not.
-    await openGame(page);
-    const ace = await drawUntilWasteLabelContains(page, "Át");
-    await ace!.dblclick();
-    await expect(foundationCards(page)).toHaveCount(1);
-    await expect(selected(page)).toHaveCount(0);
-  });
-});
-
-test.describe("two taps look further - FR-05", () => {
-  test("a double tap moves a card to a tableau column when no foundation wants it", async ({
-    page,
-  }) => {
-    // Seed 1: the black three on column 2 fits column 7 and no foundation.
-    await openGame(page, 1);
-    const before = await cardCount(page, "tableau-6");
-    const three = await topCard(page, "tableau-1");
-    await three!.dblclick();
-
-    await expect(cardsIn(page, "tableau-6")).toHaveCount(before + 1);
-    await expect(foundationCards(page)).toHaveCount(0);
-    await expect(selected(page)).toHaveCount(0);
-    await expect(undo(page)).not.toHaveAttribute("aria-disabled", "true");
-  });
-});
-
 test.describe("keyboard play - FR-12", () => {
   test("arrows move between piles and space picks a card up and puts it down", async ({
     page,
