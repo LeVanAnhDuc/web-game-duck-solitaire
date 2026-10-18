@@ -58,7 +58,7 @@ jobs:
           # Ducker ID sign-in is shipped dark: the flag and DUCKER_* vars are deliberately
           # not passed (ADR-0012).
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v3
         with:
